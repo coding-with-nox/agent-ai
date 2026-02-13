@@ -20,5 +20,6 @@ IStackRegistry stackRegistry = provider.GetRequiredService<IStackRegistry>();
 RootCommand root = new("CODEX CLI Host");
 root.AddCommand(StackCommands.Build(mediator, stackRegistry));
 root.AddCommand(GenCommands.Build(mediator));
+root.AddCommand(LlmCommands.Build(mediator));
 
 return await root.InvokeAsync(args);
