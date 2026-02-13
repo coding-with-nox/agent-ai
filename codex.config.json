@@ -1,0 +1,39 @@
+{
+  "environment": "development",
+  "agent_version": "2.0.0",
+  "workspace_root": ".",
+  "llm": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-20250514",
+    "api_key_env": "ANTHROPIC_API_KEY",
+    "max_tokens": 8192
+  },
+  "mcp_servers": [
+    {
+      "id": "mcp-filesystem",
+      "transport": "stdio",
+      "endpoint": "npx @modelcontextprotocol/server-filesystem",
+      "enabled": true
+    },
+    {
+      "id": "mcp-git",
+      "transport": "stdio",
+      "endpoint": "npx @modelcontextprotocol/server-git",
+      "enabled": true
+    },
+    {
+      "id": "mcp-terminal",
+      "transport": "stdio",
+      "endpoint": "npx @modelcontextprotocol/server-shell",
+      "enabled": true
+    }
+  ],
+  "acp_agents": [],
+  "limits": {
+    "max_tokens_per_task": 100000,
+    "max_api_calls_per_task": 50,
+    "max_execution_time_minutes": 15,
+    "max_file_size_lines": 300,
+    "cost_alert_threshold_usd": 5.0
+  }
+}
