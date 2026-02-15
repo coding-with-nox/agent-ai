@@ -16,8 +16,12 @@ public static class ServiceCollectionExtensions
     /// <returns>Updated collection.</returns>
     public static IServiceCollection AddCodexApplication(this IServiceCollection services)
     {
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ServiceCollectionExtensions).Assembly));
+        services.AddMediatR(cfg =>
+            cfg.RegisterServicesFromAssembly(typeof(ServiceCollectionExtensions).Assembly));
+
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(StackGuardBehavior<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LlmHealthGuardBehavior<,>));
+
         return services;
     }
 }
