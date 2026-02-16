@@ -25,6 +25,9 @@ public sealed record LlmProviderConfig
     /// <summary>Gets the optional base path prefix for the API.</summary>
     public string? BasePath { get; init; }
 
+    /// <summary>Gets an optional absolute base URL override (e.g. https://vm-llm.local:8443/v1).</summary>
+    public string? BaseUrlOverride { get; init; }
+
     /// <summary>Gets the environment variable name holding the API key.</summary>
     public string? ApiKeyEnv { get; init; }
 
@@ -46,6 +49,29 @@ public sealed record LlmProviderConfig
     /// <summary>Gets the number of GPU layers to offload (-1 for all).</summary>
     public int GpuLayers { get; init; } = -1;
 
-    /// <summary>Gets the base URL computed from host and port.</summary>
-    public string BaseUrl => $"http://{Host}:{Port}{BasePath ?? string.Empty}";
+    /// <summary>Gets the base URL computed from host/port or from an explicit absolute override.</summary>
+    public string BaseUrl
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(BaseUrlOverride))
+            {
+                return BaseUrlOverride.Trim().TrimEnd('/');
+            }
+
+            string normalizedBasePath = NormalizeBasePath(BasePath);
+            return $"http://{Host}:{Port}{normalizedBasePath}";
+        }
+    }
+
+    private static string NormalizeBasePath(string? basePath)
+    {
+        if (string.IsNullOrWhiteSpace(basePath))
+        {
+            return string.Empty;
+        }
+
+        string trimmed = basePath.Trim();
+        return trimmed.StartsWith("/", StringComparison.Ordinal) ? trimmed : $"/{trimmed}";
+    }
 }

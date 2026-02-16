@@ -99,6 +99,32 @@ Dopo l'installazione, il comando `nocodex` sara' disponibile nel terminale.
 3. Imposta la variabile d'ambiente `VLLM_API_KEY` se richiesta
 4. Configura host e porta in `nocodex.config.json`
 
+Esempio per VM nella stessa rete LAN:
+
+```json
+{
+  "provider_id": "vllm-lan",
+  "type": "vllm",
+  "host": "192.168.1.100",
+  "port": 8000,
+  "base_path": "/v1",
+  "model": "deepseek-ai/DeepSeek-Coder-V2-Instruct",
+  "api_key_env": "VLLM_API_KEY"
+}
+```
+
+In alternativa puoi usare `base_url` (utile con HTTPS/reverse proxy), ad esempio:
+
+```json
+{
+  "provider_id": "vllm-lan-https",
+  "type": "vllm",
+  "base_url": "https://llm-vm.lan:9443/v1",
+  "model": "deepseek-ai/DeepSeek-Coder-V2-Instruct",
+  "api_key_env": "VLLM_API_KEY"
+}
+```
+
 ### Llama.cpp (sidecar locale)
 
 1. Compila llama.cpp con supporto GPU

@@ -118,6 +118,10 @@ public sealed class LlmProviderJsonConfig
     [JsonPropertyName("base_path")]
     public string? BasePath { get; set; }
 
+    /// <summary>Gets or sets an optional absolute base URL override for the API endpoint.</summary>
+    [JsonPropertyName("base_url")]
+    public string? BaseUrl { get; set; }
+
     /// <summary>Gets or sets the API key environment variable name.</summary>
     [JsonPropertyName("api_key_env")]
     public string? ApiKeyEnv { get; set; }
@@ -163,6 +167,7 @@ public sealed class LlmProviderJsonConfig
             Port = Port,
             Model = Model,
             BasePath = BasePath,
+            BaseUrlOverride = BaseUrl,
             ApiKeyEnv = ApiKeyEnv,
             ContextWindowOverride = ContextWindowOverride,
             DefaultTemperature = DefaultTemperature,
