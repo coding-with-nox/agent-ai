@@ -1,4 +1,4 @@
-using NocodeX.Core.Enums;
+using TaskStatus = NocodeX.Core.Enums.TaskStatus;
 
 namespace NocodeX.Core.Models.Planning;
 
