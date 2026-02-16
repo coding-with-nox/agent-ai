@@ -1,0 +1,9 @@
+using NocodeX.Core.Models;
+using MediatR;
+
+namespace NocodeX.Application.Stack;
+
+/// <summary>
+/// Returns the active stack configuration.
+/// </summary>
+public sealed record ShowStackQuery : IRequest<StackConfig?>;
