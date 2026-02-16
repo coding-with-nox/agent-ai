@@ -6,7 +6,7 @@ on:
       - main
       - nocodex-ai-agent
     paths:
-      - "docs/wiki/**"
+      - "DOCS/wiki/**"
       - ".github/workflows/sync-wiki.yml"
   workflow_dispatch:
 
@@ -37,7 +37,7 @@ jobs:
 
       - name: Sync wiki files
         run: |
-          rsync -av --delete --exclude ".git" docs/wiki/ wiki/
+          rsync -av --delete --exclude ".git" DOCS/wiki/ wiki/
 
       - name: Commit and push wiki changes
         working-directory: wiki
