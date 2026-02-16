@@ -1,3 +1,4 @@
+
 ## Visual Studio Temporary Files and Build Artifacts
 [Bb]in/
 [Oo]bj/
@@ -6,6 +7,20 @@
 
 ## User-specific files
 *.rsuser
+# Build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+artifacts/
+publish/
+
+# Visual Studio
+.vs/
 *.suo
 *.user
 *.userosscache
@@ -49,3 +64,34 @@ Desktop.ini
 ## Rider
 .idea/
 *.sln.iml
+*.rsuser
+
+# Rider / ReSharper
+.idea/
+_ReSharper*/
+*.DotSettings.user
+
+# Test results and coverage
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+coverage/
+coverage.*
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+!**/packages/build/
+
+# Logs and diagnostics
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# OS files
+.DS_Store
+Thumbs.db
+
