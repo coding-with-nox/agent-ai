@@ -7,6 +7,17 @@ NOcodeX is a command-driven .NET 8 CLI agent scaffold organized with Clean Archi
 - Detailed usage wiki (step-by-step): `https://github.com/coding-with-nox/agent-ai/wiki`
 - Deployment notes: `docs/deploy.md`
 - Project overview: `docs/description.md`
+- Wiki source files (auto-sync): `docs/wiki`
+
+## Wiki Sync Automation
+
+The repository includes `.github/workflows/sync-wiki.yml` to publish `docs/wiki/*` to the GitHub Wiki.
+
+Required setup:
+
+1. Create a Personal Access Token with write access to this repository.
+2. Save it in GitHub Actions secrets as `WIKI_PUSH_TOKEN`.
+3. Push changes under `docs/wiki/` to trigger sync automatically.
 
 ## Current implementation scope
 
