@@ -4,7 +4,7 @@ NOcodeX is a command-driven .NET 8 CLI agent scaffold organized with Clean Archi
 
 ## Documentation
 
-- Detailed usage wiki (step-by-step): `docs/wiki.md`
+- Detailed usage wiki (step-by-step): `https://github.com/coding-with-nox/agent-ai/wiki`
 - Deployment notes: `docs/deploy.md`
 - Project overview: `docs/description.md`
 
