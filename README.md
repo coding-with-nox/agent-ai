@@ -1,6 +1,6 @@
-# NOcodeX Agent v2.0
+﻿# NOcodeX Agent v2.0
 
-NOcodeX is a command-driven .NET 8 CLI agent scaffold organized with Clean Architecture and CQRS.
+NOcodeX is a command-driven .NET 10 CLI agent scaffold organized with Clean Architecture and CQRS.
 
 ## Documentation
 
@@ -43,8 +43,9 @@ If no stack is configured, stack-dependent generation commands fail with a guide
 
 ## Development notes
 
-- Target framework: .NET 8
+- Target framework: .NET 10
 - CLI: `System.CommandLine`
 - Mediator: `MediatR`
 - Validation: `FluentValidation`
 - Logging package reference: `Serilog`
+

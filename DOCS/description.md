@@ -1,8 +1,8 @@
-# NOcodeX - Descrizione del Programma
+﻿# NOcodeX - Descrizione del Programma
 
 ## Cos'e' NOcodeX
 
-NOcodeX e' un agente CLI autonomo per la generazione di codice production-ready, progettato per funzionare con Large Language Model (LLM) self-hosted. E' costruito con .NET 8 e segue i principi della Clean Architecture e il pattern CQRS (Command Query Responsibility Segregation).
+NOcodeX e' un agente CLI autonomo per la generazione di codice production-ready, progettato per funzionare con Large Language Model (LLM) self-hosted. E' costruito con .NET 10 e segue i principi della Clean Architecture e il pattern CQRS (Command Query Responsibility Segregation).
 
 L'obiettivo di NOcodeX e' permettere la generazione automatica di codice su diversi stack tecnologici, senza dipendere da servizi cloud esterni per l'inferenza AI.
 
@@ -11,10 +11,10 @@ L'obiettivo di NOcodeX e' permettere la generazione automatica di codice su dive
 Il progetto segue una struttura a livelli (Clean Architecture):
 
 ```
-NocodeX.Cli             → Livello presentazione (CLI con System.CommandLine)
-NocodeX.Application     → Livello applicazione (use case, CQRS con MediatR)
-NocodeX.Core            → Livello dominio (interfacce, modelli, enum, eccezioni)
-NocodeX.Infrastructure  → Livello infrastruttura (implementazioni concrete)
+NocodeX.Cli             â†’ Livello presentazione (CLI con System.CommandLine)
+NocodeX.Application     â†’ Livello applicazione (use case, CQRS con MediatR)
+NocodeX.Core            â†’ Livello dominio (interfacce, modelli, enum, eccezioni)
+NocodeX.Infrastructure  â†’ Livello infrastruttura (implementazioni concrete)
 ```
 
 ### NocodeX.Core (Dominio)
@@ -59,7 +59,7 @@ NOcodeX supporta 7 preset tecnologici integrati:
 
 | Preset | Linguaggio | Framework |
 |--------|-----------|-----------|
-| `dotnet-clean` | C# | .NET 8 con Clean Architecture |
+| `dotnet-clean` | C# | .NET 10 con Clean Architecture |
 | `nextjs-fullstack` | TypeScript | Next.js |
 | `fastapi-hex` | Python | FastAPI con architettura esagonale |
 | `go-micro` | Go | Microservizi Go |
@@ -135,10 +135,11 @@ nocodex approve <plan-id>      # Approva ed esegue un piano
 
 | Componente | Tecnologia |
 |-----------|-----------|
-| Runtime | .NET 8 |
+| Runtime | .NET 10 |
 | CLI framework | System.CommandLine |
 | Mediator/CQRS | MediatR |
 | Validazione | FluentValidation |
 | Logging | Serilog |
 | DI container | Microsoft.Extensions.DependencyInjection |
 | UI console | Spectre.Console |
+

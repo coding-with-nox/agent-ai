@@ -1,8 +1,8 @@
-# NOcodeX - Guida al Deploy
+﻿# NOcodeX - Guida al Deploy
 
 ## Prerequisiti
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) installato
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) installato
 - Almeno un provider LLM configurato (Ollama, vLLM, Llama.cpp o compatibile OpenAI)
 - Node.js (opzionale, richiesto per i server MCP via `npx`)
 
@@ -28,7 +28,7 @@ dotnet test NocodeX.sln -c Release
 dotnet publish src/NocodeX.Cli/NocodeX.Cli.csproj -c Release -o ./publish
 ```
 
-L'eseguibile si troverà nella cartella `./publish`.
+L'eseguibile si troverÃ  nella cartella `./publish`.
 
 ### Installazione come tool .NET globale
 
@@ -186,3 +186,4 @@ NOcodeX crea una cartella `.nocodex` nel workspace corrente contenente:
 | Modello non trovato | Usare `nocodex llm pull <model>` o scaricare manualmente il modello |
 | Errore "No stack configured" | Eseguire `nocodex stack set <preset>` prima dei comandi di generazione |
 | Timeout durante la generazione | Aumentare `timeout_seconds` nel provider o `max_execution_time_minutes` nei limiti |
+

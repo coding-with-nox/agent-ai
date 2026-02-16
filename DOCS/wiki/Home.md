@@ -4,7 +4,7 @@ Questa wiki descrive in modo puntuale come usare il progetto NOcodeX allo stato 
 
 ## 1. Cosa fa il progetto (oggi)
 
-NOcodeX e una CLI .NET 8 orientata a:
+NOcodeX e una CLI .NET 10 orientata a:
 
 - gestione stack applicativo (`stack`)
 - generazione endpoint (`gen:endpoint`)
@@ -26,7 +26,7 @@ Comandi root registrati in CLI:
 
 Prerequisiti minimi:
 
-- .NET 8 SDK installato
+- .NET 10 SDK installato
 - repository clonato in una cartella di lavoro
 - file `nocodex.config.json` nella root del workspace
 - almeno un provider LLM configurato in `nocodex.config.json`
@@ -347,3 +347,4 @@ Controlli:
 1. `nocodex.config.json` presente nella root montata.
 2. comando lanciato con `docker compose run --rm nocodex ...`
 3. volume bind attivo (workspace montato in `/workspace`).
+

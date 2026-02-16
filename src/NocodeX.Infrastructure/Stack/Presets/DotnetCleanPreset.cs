@@ -1,4 +1,4 @@
-using NocodeX.Core.Interfaces;
+﻿using NocodeX.Core.Interfaces;
 using NocodeX.Core.Models;
 
 namespace NocodeX.Infrastructure.Stack.Presets;
@@ -18,7 +18,7 @@ public sealed class DotnetCleanPreset : IStackPreset
         {
             Name = Name,
             Language = "C#",
-            Framework = ".NET 8 Web API",
+            Framework = ".NET 10 Web API",
             Commands = new Dictionary<string, string>
             {
                 ["lint"] = "dotnet format",
@@ -40,3 +40,4 @@ public sealed class DotnetCleanPreset : IStackPreset
         };
     }
 }
+
