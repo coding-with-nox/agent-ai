@@ -1,0 +1,54 @@
+name: Sync GitHub Wiki
+
+on:
+  push:
+    branches:
+      - main
+      - nocodex-ai-agent
+    paths:
+      - "DOCS/wiki/**"
+      - ".github/workflows/sync-wiki.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate token
+        env:
+          WIKI_PUSH_TOKEN: ${{ secrets.WIKI_PUSH_TOKEN }}
+        run: |
+          if [ -z "${WIKI_PUSH_TOKEN}" ]; then
+            echo "::error::Missing secret WIKI_PUSH_TOKEN. Create a PAT with write access to this repository and add it as Actions secret."
+            exit 1
+          fi
+
+      - name: Clone wiki repository
+        env:
+          WIKI_PUSH_TOKEN: ${{ secrets.WIKI_PUSH_TOKEN }}
+        run: |
+          git clone "https://x-access-token:${WIKI_PUSH_TOKEN}@github.com/${{ github.repository }}.wiki.git" wiki
+
+      - name: Sync wiki files
+        run: |
+          rsync -av --delete --exclude ".git" DOCS/wiki/ wiki/
+
+      - name: Commit and push wiki changes
+        working-directory: wiki
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No wiki changes to push."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Sync wiki from docs/wiki"
+          git push origin master

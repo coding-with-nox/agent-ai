@@ -1,0 +1,17 @@
+services:
+  nocodex:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${DOCKER_IMAGE:-ghcr.io/owner/agent-ai}:${DOCKER_TAG:-local}
+    environment:
+      VLLM_API_KEY: ${VLLM_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      TGI_API_KEY: ${TGI_API_KEY:-}
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    stdin_open: true
+    tty: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

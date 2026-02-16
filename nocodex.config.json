@@ -1,0 +1,118 @@
+{
+  "environment": "development",
+  "agent_version": "2.0.0",
+  "workspace_root": ".",
+
+  "llm": {
+    "primary_provider": "ollama-local",
+    "providers": [
+      {
+        "provider_id": "ollama-local",
+        "type": "ollama",
+        "host": "localhost",
+        "port": 11434,
+        "model": "qwen2.5-coder:32b-instruct-q4_K_M",
+        "context_window_override": null,
+        "default_temperature": 0.2,
+        "default_max_tokens": 8192,
+        "timeout_seconds": 300,
+        "auto_pull": true
+      },
+      {
+        "provider_id": "vllm-gpu-server",
+        "type": "vllm",
+        "host": "192.168.1.100",
+        "port": 8000,
+        "model": "deepseek-ai/DeepSeek-Coder-V2-Instruct",
+        "api_key_env": "VLLM_API_KEY",
+        "context_window_override": 65536,
+        "default_temperature": 0.1,
+        "default_max_tokens": 16384,
+        "timeout_seconds": 600
+      },
+      {
+        "provider_id": "llamacpp-sidecar",
+        "type": "llama-cpp",
+        "host": "localhost",
+        "port": 8080,
+        "context_window_override": 8192,
+        "default_temperature": 0.2,
+        "default_max_tokens": 4096,
+        "timeout_seconds": 120
+      },
+      {
+        "provider_id": "tgi-remote",
+        "type": "openai-compatible",
+        "host": "10.0.0.50",
+        "port": 3000,
+        "base_path": "/v1",
+        "model": "codellama/CodeLlama-34b-Instruct-hf",
+        "api_key_env": null,
+        "timeout_seconds": 300
+      }
+    ],
+    "fallback_chain": ["ollama-local", "vllm-gpu-server"],
+    "routing_rules": [
+      {
+        "condition": "task_complexity >= 'high'",
+        "provider": "vllm-gpu-server",
+        "reason": "Route complex generation to GPU server with larger model"
+      },
+      {
+        "condition": "prompt_type == 'Explain'",
+        "provider": "ollama-local",
+        "reason": "Lightweight tasks stay local"
+      },
+      {
+        "condition": "prompt_type == 'Review'",
+        "provider": "ollama-local",
+        "reason": "Review tasks stay local"
+      }
+    ]
+  },
+
+  "mcp_servers": [
+    {
+      "id": "mcp-filesystem",
+      "transport": "stdio",
+      "endpoint": "npx -y @anthropic/mcp-filesystem /workspace",
+      "enabled": true
+    },
+    {
+      "id": "mcp-git",
+      "transport": "stdio",
+      "endpoint": "npx -y @anthropic/mcp-git",
+      "enabled": true
+    },
+    {
+      "id": "mcp-terminal",
+      "transport": "stdio",
+      "endpoint": "internal://shell",
+      "enabled": true
+    }
+  ],
+
+  "acp_agents": [
+    {
+      "id": "acp-reviewer",
+      "endpoint": "internal://llm",
+      "trust_level": "ReviewRequired",
+      "enabled": false
+    },
+    {
+      "id": "acp-tester",
+      "endpoint": "internal://llm",
+      "trust_level": "ReviewRequired",
+      "enabled": false
+    }
+  ],
+
+  "limits": {
+    "max_tokens_per_task": 100000,
+    "max_api_calls_per_task": 50,
+    "max_execution_time_minutes": 15,
+    "max_file_size_lines": 300,
+    "max_concurrent_llm_requests": 1,
+    "max_self_correction_attempts": 3
+  }
+}

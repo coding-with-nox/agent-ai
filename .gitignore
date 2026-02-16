@@ -1,3 +1,12 @@
+
+## Visual Studio Temporary Files and Build Artifacts
+[Bb]in/
+[Oo]bj/
+.vs/
+.vscode/
+
+## User-specific files
+*.rsuser
 # Build output
 [Bb]in/
 [Oo]bj/
@@ -16,6 +25,45 @@ publish/
 *.user
 *.userosscache
 *.sln.docstates
+
+## Roslyn cache directories
+*.generated.cs
+*.generated.h
+
+## NuGet Packages
+*.nupkg
+**/packages/*
+!**/packages/build/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## Unit Test Reports
+TestResults/
+*.trx
+*.coverage
+
+## Publishing Output
+*.deploy
+*.pubxml
+*.publishproj
+
+## Operating System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+## Environment Files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+## Rider
+.idea/
+*.sln.iml
 *.rsuser
 
 # Rider / ReSharper
