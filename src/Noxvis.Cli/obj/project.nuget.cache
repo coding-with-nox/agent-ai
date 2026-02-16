@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "dgSpecHash": "mCaO9ThaWGA=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\tommaso.nocentini\\OneDrive - Skynet Technology\\Desktop\\Progetti\\nox\\projects\\agent-ai\\src\\Noxvis.Cli\\Noxvis.Cli.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\tommaso.nocentini\\.nuget\\packages\\fluentvalidation\\11.9.2\\fluentvalidation.11.9.2.nupkg.sha512",
+    "C:\\Users\\tommaso.nocentini\\.nuget\\packages\\mediatr\\12.4.1\\mediatr.12.4.1.nupkg.sha512",
+    "C:\\Users\\tommaso.nocentini\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512",
+    "C:\\Users\\tommaso.nocentini\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\8.0.1\\microsoft.extensions.dependencyinjection.8.0.1.nupkg.sha512",
+    "C:\\Users\\tommaso.nocentini\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.2\\microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
+    "C:\\Users\\tommaso.nocentini\\.nuget\\packages\\serilog\\4.0.1\\serilog.4.0.1.nupkg.sha512",
+    "C:\\Users\\tommaso.nocentini\\.nuget\\packages\\system.commandline\\2.0.0-beta4.22272.1\\system.commandline.2.0.0-beta4.22272.1.nupkg.sha512"
+  ],
+  "logs": []
+}
