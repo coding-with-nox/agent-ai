@@ -55,11 +55,11 @@ public static class LlmStatusRenderer
         if (withGpu?.GpuUtilizationPercent is not null)
         {
             double pct = withGpu.GpuUtilizationPercent.Value;
-            string color = pct < 50 ? "green" : pct < 80 ? "yellow" : "red";
+            Color barColor = pct < 50 ? Color.Green : pct < 80 ? Color.Yellow : Color.Red;
 
             AnsiConsole.Write(new BreakdownChart()
                 .Width(60)
-                .AddItem("Used", pct, Color.Parse(color))
+                .AddItem("Used", pct, barColor)
                 .AddItem("Free", 100 - pct, Color.Grey));
         }
     }
