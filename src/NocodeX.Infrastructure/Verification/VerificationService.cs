@@ -26,7 +26,7 @@ public sealed class VerificationService : IVerificationService
     public async Task<IReadOnlyList<VerificationResult>> VerifyAsync(
         StackConfig stack, CancellationToken ct)
     {
-        List<VerificationResult> results = new();
+        List<VerificationResult> results = [];
         string[] steps = { "lint", "build", "test" };
 
         foreach (string step in steps)

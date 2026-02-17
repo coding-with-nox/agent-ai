@@ -38,11 +38,11 @@ public sealed class NocodeXConfiguration
 
     /// <summary>Gets or sets the MCP server configurations.</summary>
     [JsonPropertyName("mcp_servers")]
-    public List<McpServerConfig> McpServers { get; set; } = new();
+    public List<McpServerConfig> McpServers { get; set; } = [];
 
     /// <summary>Gets or sets the ACP agent configurations.</summary>
     [JsonPropertyName("acp_agents")]
-    public List<AcpAgentConfig> AcpAgents { get; set; } = new();
+    public List<AcpAgentConfig> AcpAgents { get; set; } = [];
 
     /// <summary>Gets or sets the execution limits.</summary>
     [JsonPropertyName("limits")]
@@ -94,7 +94,7 @@ public sealed class NocodeXConfiguration
 
     private static IReadOnlyList<string> Validate(NocodeXConfiguration config)
     {
-        List<string> warnings = new();
+        List<string> warnings = [];
 
         if (string.IsNullOrWhiteSpace(config.GitHub.TargetRepo))
         {
@@ -200,11 +200,11 @@ public sealed class LabelsConfiguration
 {
     /// <summary>Gets or sets the workflow state labels.</summary>
     [JsonPropertyName("states")]
-    public List<LabelDefinition> States { get; set; } = new();
+    public List<LabelDefinition> States { get; set; } = [];
 
     /// <summary>Gets or sets the priority labels.</summary>
     [JsonPropertyName("priorities")]
-    public List<LabelDefinition> Priorities { get; set; } = new();
+    public List<LabelDefinition> Priorities { get; set; } = [];
 
     /// <summary>Gets or sets the default priority label name.</summary>
     [JsonPropertyName("default_priority")]
@@ -240,15 +240,15 @@ public sealed class LlmConfiguration
 
     /// <summary>Gets or sets all available provider definitions.</summary>
     [JsonPropertyName("providers")]
-    public List<LlmProviderConfig> Providers { get; set; } = new();
+    public List<LlmProviderConfig> Providers { get; set; } = [];
 
     /// <summary>Gets or sets fallback provider chain in order.</summary>
     [JsonPropertyName("fallback_chain")]
-    public List<string> FallbackChain { get; set; } = new();
+    public List<string> FallbackChain { get; set; } = [];
 
     /// <summary>Gets or sets dynamic routing rules.</summary>
     [JsonPropertyName("routing_rules")]
-    public List<LlmRoutingRule> RoutingRules { get; set; } = new();
+    public List<LlmRoutingRule> RoutingRules { get; set; } = [];
 }
 
 /// <summary>

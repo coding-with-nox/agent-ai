@@ -45,11 +45,11 @@ public sealed class AcpAgentClient : IAcpClient
                 ? _llmClientManager.GetProvider(task.LlmProviderId)
                 : _llmClientManager.Primary;
 
-            List<LlmMessage> messages = new()
-            {
+            List<LlmMessage> messages =
+            [
                 new LlmMessage("system", BuildAgentSystemPrompt()),
                 new LlmMessage("user", BuildTaskPrompt(task))
-            };
+            ];
 
             LlmRequest request = new()
             {

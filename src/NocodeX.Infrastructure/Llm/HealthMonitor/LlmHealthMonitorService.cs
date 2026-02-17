@@ -15,7 +15,7 @@ public sealed class LlmHealthMonitorService : BackgroundService
     private readonly ILogger<LlmHealthMonitorService> _logger;
     private readonly TimeSpan _interval;
 
-    private readonly Dictionary<string, LlmHealthStatus> _latestStatus = new();
+    private readonly Dictionary<string, LlmHealthStatus> _latestStatus = [];
     private readonly object _statusLock = new();
 
     /// <summary>

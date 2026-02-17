@@ -1,3 +1,4 @@
+
 using NocodeX.Core.Models;
 using Microsoft.Extensions.Logging;
 
@@ -34,7 +35,7 @@ public sealed class CommandChainParser
             };
         }
 
-        List<CommandSegment> segments = new();
+        List<CommandSegment> segments = [];
 
         // Split by && (sequential) or & (parallel)
         string[] sequentialParts = input.Split("&&", StringSplitOptions.TrimEntries);

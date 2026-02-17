@@ -47,10 +47,10 @@ public sealed class TokenEstimatorTests
     [Fact]
     public void EstimateTokensForMessages_SingleMessage_IncludesOverhead()
     {
-        List<LlmMessage> messages = new()
-        {
+        List<LlmMessage> messages =
+        [
             new LlmMessage("user", "Hello")
-        };
+        ];
 
         int estimate = _sut.EstimateTokensForMessages(messages);
         estimate.Should().BeGreaterThan(1);
@@ -59,11 +59,11 @@ public sealed class TokenEstimatorTests
     [Fact]
     public void EstimateTokensForMessages_MultipleMessages_IncludesReplyPriming()
     {
-        List<LlmMessage> messages = new()
-        {
+        List<LlmMessage> messages =
+        [
             new LlmMessage("system", "You are a helper."),
             new LlmMessage("user", "Hello, world!")
-        };
+        ];
 
         int estimate = _sut.EstimateTokensForMessages(messages);
         // Should include overhead for each message + 3 for reply priming

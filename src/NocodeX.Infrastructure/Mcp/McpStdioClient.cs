@@ -107,7 +107,7 @@ public sealed class McpStdioClient : IMcpClient, IDisposable
             using JsonDocument doc = JsonDocument.Parse(responseLine);
             JsonElement tools = doc.RootElement.GetProperty("result").GetProperty("tools");
 
-            List<string> names = new();
+            List<string> names = [];
             foreach (JsonElement tool in tools.EnumerateArray())
             {
                 string? name = tool.GetProperty("name").GetString();

@@ -34,11 +34,11 @@ public sealed class PromptBuilder : IPromptBuilder
         string systemPrompt = BuildSystemPrompt(stack, modelInfo);
         string userPrompt = BuildUserPrompt(context, stack);
 
-        List<LlmMessage> messages = new()
-        {
+        List<LlmMessage> messages =
+        [
             new LlmMessage("system", systemPrompt),
             new LlmMessage("user", userPrompt)
-        };
+        ];
 
         bool isSmallModel = modelInfo.ParameterCount < 14_000_000_000;
         float temperature = isSmallModel ? 0.1f : 0.2f;

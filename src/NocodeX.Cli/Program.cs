@@ -37,7 +37,7 @@ using ILoggerFactory bootstrapLoggerFactory = LoggerFactory.Create(builder =>
     builder.AddSerilog(Log.Logger);
 });
 
-ILogger bootstrapLogger = bootstrapLoggerFactory.CreateLogger("Bootstrap");
+Microsoft.Extensions.Logging.ILogger bootstrapLogger = bootstrapLoggerFactory.CreateLogger("Bootstrap");
 string configPath = Path.Combine(Directory.GetCurrentDirectory(), "nocodex.config.json");
 NocodeXConfiguration config = NocodeXConfiguration.Load(configPath, bootstrapLogger);
 

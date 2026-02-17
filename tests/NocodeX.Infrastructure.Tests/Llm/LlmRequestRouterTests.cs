@@ -18,10 +18,10 @@ public sealed class LlmRequestRouterTests
     public void ResolveProvider_MatchingComplexityRule_ReturnsRuleProvider()
     {
         ILlmClientManager manager = CreateManager("local", "gpu-server");
-        List<LlmRoutingRule> rules = new()
-        {
+        List<LlmRoutingRule> rules =
+        [
             new LlmRoutingRule("task_complexity >= 'high'", "gpu-server", "Complex tasks go to GPU")
-        };
+        ];
 
         LlmRequestRouter sut = new(manager, rules, NullLogger<LlmRequestRouter>.Instance);
 
@@ -33,10 +33,10 @@ public sealed class LlmRequestRouterTests
     public void ResolveProvider_MatchingPromptTypeRule_ReturnsRuleProvider()
     {
         ILlmClientManager manager = CreateManager("local", "gpu-server");
-        List<LlmRoutingRule> rules = new()
-        {
+        List<LlmRoutingRule> rules =
+        [
             new LlmRoutingRule("prompt_type == 'Explain'", "local", "Explain stays local")
-        };
+        ];
 
         LlmRequestRouter sut = new(manager, rules, NullLogger<LlmRequestRouter>.Instance);
 
@@ -48,10 +48,10 @@ public sealed class LlmRequestRouterTests
     public void ResolveProvider_NoMatchingRule_ReturnsPrimary()
     {
         ILlmClientManager manager = CreateManager("primary", "other");
-        List<LlmRoutingRule> rules = new()
-        {
+        List<LlmRoutingRule> rules =
+        [
             new LlmRoutingRule("task_complexity >= 'critical'", "other", "Only critical")
-        };
+        ];
 
         LlmRequestRouter sut = new(manager, rules, NullLogger<LlmRequestRouter>.Instance);
 
@@ -63,10 +63,10 @@ public sealed class LlmRequestRouterTests
     public void ResolveProvider_RuleProviderNotRegistered_SkipsRule()
     {
         ILlmClientManager manager = CreateManager("local");
-        List<LlmRoutingRule> rules = new()
-        {
+        List<LlmRoutingRule> rules =
+        [
             new LlmRoutingRule("task_complexity >= 'high'", "missing-server", "Not registered")
-        };
+        ];
 
         LlmRequestRouter sut = new(manager, rules, NullLogger<LlmRequestRouter>.Instance);
 
@@ -78,10 +78,10 @@ public sealed class LlmRequestRouterTests
     public void GetRoutedProvider_ReturnsCorrectProviderInstance()
     {
         ILlmClientManager manager = CreateManager("local", "gpu");
-        List<LlmRoutingRule> rules = new()
-        {
+        List<LlmRoutingRule> rules =
+        [
             new LlmRoutingRule("prompt_type == 'Review'", "local", "Reviews stay local")
-        };
+        ];
 
         LlmRequestRouter sut = new(manager, rules, NullLogger<LlmRequestRouter>.Instance);
 

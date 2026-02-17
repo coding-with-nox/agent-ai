@@ -68,7 +68,7 @@ public sealed class FileOutputMapper
         IReadOnlyDictionary<string, string> files,
         CancellationToken ct)
     {
-        List<string> written = new();
+        List<string> written = [];
 
         foreach (KeyValuePair<string, string> file in files)
         {

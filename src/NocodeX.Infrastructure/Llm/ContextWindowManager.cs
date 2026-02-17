@@ -62,7 +62,7 @@ public sealed class ContextWindowManager : IContextWindowManager
             return Task.FromResult<IReadOnlyList<LlmMessage>>(Array.Empty<LlmMessage>());
         }
 
-        List<LlmMessage> result = new();
+        List<LlmMessage> result = [];
         int usedTokens = 0;
 
         // Always keep system prompt if present
@@ -77,13 +77,13 @@ public sealed class ContextWindowManager : IContextWindowManager
         }
 
         // Add messages from newest to oldest (priority: recent context)
-        List<LlmMessage> nonSystem = new();
+        List<LlmMessage> nonSystem = [];
         for (int i = (messages.Count > 0 && messages[0].Role == "system") ? 1 : 0; i < messages.Count; i++)
         {
             nonSystem.Add(messages[i]);
         }
 
-        List<LlmMessage> kept = new();
+        List<LlmMessage> kept = [];
         for (int i = nonSystem.Count - 1; i >= 0; i--)
         {
             ct.ThrowIfCancellationRequested();

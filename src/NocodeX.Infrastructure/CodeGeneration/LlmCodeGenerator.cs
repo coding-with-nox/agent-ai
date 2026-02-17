@@ -84,7 +84,7 @@ public sealed class LlmCodeGenerator
             };
         }
 
-        Dictionary<string, string> files = new();
+        Dictionary<string, string> files = [];
         foreach (CodeBlock block in blocks)
         {
             string filePath = _fileMapper.ResolveFilePath(block.FilePath, stack);

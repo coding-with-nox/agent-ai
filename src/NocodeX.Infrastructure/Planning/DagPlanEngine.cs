@@ -25,7 +25,7 @@ public sealed class DagPlanEngine : IPlanEngine
     public Task<ExecutionPlan> CreatePlanAsync(
         CommandChain chain, CancellationToken ct)
     {
-        List<PlanStep> steps = new();
+        List<PlanStep> steps = [];
         string? previousStepId = null;
 
         for (int i = 0; i < chain.Segments.Count; i++)
@@ -33,7 +33,7 @@ public sealed class DagPlanEngine : IPlanEngine
             CommandSegment segment = chain.Segments[i];
             string stepId = $"step-{i + 1}";
 
-            List<string> deps = new();
+            List<string> deps = [];
             if (previousStepId is not null && !segment.Parallel)
             {
                 deps.Add(previousStepId);

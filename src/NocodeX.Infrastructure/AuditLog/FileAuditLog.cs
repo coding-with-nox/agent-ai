@@ -64,7 +64,7 @@ public sealed class FileAuditLog : IAuditLog
         }
 
         string[] lines = await File.ReadAllLinesAsync(_logFilePath, ct);
-        List<AuditEntry> entries = new();
+        List<AuditEntry> entries = [];
 
         int start = Math.Max(0, lines.Length - count);
         for (int i = start; i < lines.Length; i++)

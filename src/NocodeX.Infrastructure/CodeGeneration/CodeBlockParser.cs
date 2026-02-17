@@ -52,7 +52,7 @@ public sealed partial class CodeBlockParser
 
     private static List<CodeBlock> ParseXmlBlocks(string text)
     {
-        List<CodeBlock> blocks = new();
+        List<CodeBlock> blocks = [];
         Regex regex = XmlCodeBlockRegex();
         MatchCollection matches = regex.Matches(text);
 
@@ -71,7 +71,7 @@ public sealed partial class CodeBlockParser
 
     private static List<CodeBlock> ParseMarkdownBlocks(string text)
     {
-        List<CodeBlock> blocks = new();
+        List<CodeBlock> blocks = [];
         Regex regex = MarkdownCodeBlockRegex();
         MatchCollection matches = regex.Matches(text);
 

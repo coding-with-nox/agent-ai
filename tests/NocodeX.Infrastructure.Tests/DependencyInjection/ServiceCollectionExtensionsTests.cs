@@ -1,4 +1,5 @@
 using NocodeX.Core.Models;
+using NocodeX.Core.Models.Llm;
 using NocodeX.Infrastructure.Acp;
 using NocodeX.Infrastructure.Configuration;
 using NocodeX.Infrastructure.DependencyInjection;
@@ -59,28 +60,28 @@ public sealed class ServiceCollectionExtensionsTests
             Llm = new LlmConfiguration
             {
                 PrimaryProvider = "ollama-local",
-                Providers = new List<LlmProviderJsonConfig>
-                {
+                Providers =
+                [
                     new()
                     {
                         ProviderId = "ollama-local",
-                        Type = "ollama",
+                        Type = NocodeX.Core.Enums.LlmProviderType.Ollama,
                         Host = "localhost",
                         Port = 11434,
                         Model = "qwen2.5-coder:7b",
                         TimeoutSeconds = 30
                     }
-                },
-                FallbackChain = new List<string> { "ollama-local" }
+                ],
+                FallbackChain = ["ollama-local"]
             },
-            McpServers = new List<McpServerConfig>
-            {
+            McpServers =
+            [
                 new("mcp-context7", "stdio", "npx -y @upstash/context7-mcp", mcpEnabled)
-            },
-            AcpAgents = new List<AcpAgentConfig>
-            {
+            ],
+            AcpAgents =
+            [
                 new("acp-reviewer", "internal://llm", NocodeX.Core.Enums.TrustLevel.ReviewRequired, acpEnabled)
-            }
+            ]
         };
     }
 }

@@ -29,7 +29,7 @@ public sealed class SseStreamReaderTests
             """;
 
         HttpResponseMessage response = CreateResponse(sseData);
-        List<LlmTokenChunk> chunks = new();
+        List<LlmTokenChunk> chunks = [];
 
         await foreach (LlmTokenChunk chunk in _sut.ReadAsync(response))
         {
@@ -50,7 +50,7 @@ public sealed class SseStreamReaderTests
     public async Task ReadAsync_EmptyStream_YieldsNothing()
     {
         HttpResponseMessage response = CreateResponse("");
-        List<LlmTokenChunk> chunks = new();
+        List<LlmTokenChunk> chunks = [];
 
         await foreach (LlmTokenChunk chunk in _sut.ReadAsync(response))
         {
@@ -64,7 +64,7 @@ public sealed class SseStreamReaderTests
     public async Task ReadAsync_DoneSentinelOnly_YieldsNothing()
     {
         HttpResponseMessage response = CreateResponse("data: [DONE]\n\n");
-        List<LlmTokenChunk> chunks = new();
+        List<LlmTokenChunk> chunks = [];
 
         await foreach (LlmTokenChunk chunk in _sut.ReadAsync(response))
         {
@@ -86,7 +86,7 @@ public sealed class SseStreamReaderTests
             """;
 
         HttpResponseMessage response = CreateResponse(sseData);
-        List<LlmTokenChunk> chunks = new();
+        List<LlmTokenChunk> chunks = [];
 
         await foreach (LlmTokenChunk chunk in _sut.ReadAsync(response))
         {
@@ -108,7 +108,7 @@ public sealed class SseStreamReaderTests
             """;
 
         HttpResponseMessage response = CreateResponse(sseData);
-        List<LlmTokenChunk> chunks = new();
+        List<LlmTokenChunk> chunks = [];
 
         await foreach (LlmTokenChunk chunk in _sut.ReadAsync(response))
         {
