@@ -77,6 +77,8 @@ root.SetHandler(() =>
         McpStatus = $"{mcpManager.GetServerIds().Count} server(s) registered",
         AcpStatus = $"{acpManager.GetAgentIds().Count} agent(s) registered",
         WorkspacePath = Path.GetFullPath(config.WorkspaceRoot),
+        TargetRepo = string.IsNullOrWhiteSpace(config.GitHub.TargetRepo) ? "(non configurato)" : config.GitHub.TargetRepo,
+        WorkspaceDirectory = config.GitHub.WorkspaceDirectory,
         LimitsInfo = $"{config.Limits.MaxTokensPerTask / 1000}K tokens | " +
                      $"{config.Limits.MaxApiCallsPerTask} calls | " +
                      $"{config.Limits.MaxExecutionTimeMinutes}min"

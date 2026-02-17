@@ -1,12 +1,11 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
-    [Parameter(Mandatory = $true)]
     [string]$Repo,
 
     [Parameter(Mandatory = $true)]
     [int]$IssueNumber,
 
-    [string]$ProjectRoot = ".",
+    [string]$ProjectRoot,
 
     [switch]$PushMain,
 
@@ -14,78 +13,30 @@ param(
 
     [switch]$CommentOnIssue,
 
-    [switch]$SkipStateManagement
+    [switch]$SkipStateManagement,
+
+    [string]$ConfigPath
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$script:StateLabels = @("todo", "in progress", "wf reply", "test", "release", "completed")
-$script:PriorityLabels = @("p0", "p1", "p2", "p3")
+Import-Module (Join-Path $PSScriptRoot "NocodeXConfig.psm1") -Force
 
-$script:LabelCatalog = @(
-    @{ Name = "todo"; Color = "1D76DB"; Description = "Ready for agent pickup" },
-    @{ Name = "in progress"; Color = "FBCA04"; Description = "Agent is implementing" },
-    @{ Name = "wf reply"; Color = "D93F0B"; Description = "Waiting for user clarification" },
-    @{ Name = "test"; Color = "5319E7"; Description = "Ready for CI tests" },
-    @{ Name = "release"; Color = "0E8A16"; Description = "Tests passed, PR ready" },
-    @{ Name = "completed"; Color = "0E8A16"; Description = "PR merged and task completed" },
-    @{ Name = "p0"; Color = "B60205"; Description = "Highest priority" },
-    @{ Name = "p1"; Color = "D93F0B"; Description = "High priority" },
-    @{ Name = "p2"; Color = "FBCA04"; Description = "Medium priority" },
-    @{ Name = "p3"; Color = "0E8A16"; Description = "Low priority" }
-)
+$config = Get-NocodeXConfig -ConfigPath $ConfigPath
 
-function Require-Command {
-    param([Parameter(Mandatory = $true)][string]$Name)
-
-    if (-not (Get-Command $Name -ErrorAction SilentlyContinue)) {
-        throw "Required command '$Name' was not found in PATH."
-    }
+if ([string]::IsNullOrWhiteSpace($Repo)) {
+    $Repo = Get-TargetRepo -Config $config
 }
 
-function Ensure-WorkflowLabels {
-    param([Parameter(Mandatory = $true)][string]$Repository)
-
-    foreach ($label in $script:LabelCatalog) {
-        gh label create $label.Name --repo $Repository --color $label.Color --description $label.Description --force | Out-Null
-        if ($LASTEXITCODE -ne 0) {
-            throw "Failed to ensure label '$($label.Name)'."
-        }
-    }
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) {
+    $ProjectRoot = Get-TargetRepoLocalPath -Config $config
 }
 
-function Set-IssueWorkflowState {
-    param(
-        [Parameter(Mandatory = $true)][string]$Repository,
-        [Parameter(Mandatory = $true)][int]$Number,
-        [Parameter(Mandatory = $true)][string]$State
-    )
-
-    $remove = $script:StateLabels -join ","
-    gh issue edit $Number --repo $Repository --remove-label $remove --add-label $State | Out-Null
-    if ($LASTEXITCODE -ne 0) {
-        throw "Failed to set workflow state '$State' on issue #$Number."
-    }
-}
-
-function Ensure-IssueHasPriority {
-    param(
-        [Parameter(Mandatory = $true)]$Issue,
-        [Parameter(Mandatory = $true)][string]$Repository,
-        [Parameter(Mandatory = $true)][int]$Number
-    )
-
-    $labelNames = @($Issue.labels | ForEach-Object { $_.name })
-    $priority = $script:PriorityLabels | Where-Object { $labelNames -contains $_ } | Select-Object -First 1
-
-    if ($null -eq $priority) {
-        gh issue edit $Number --repo $Repository --add-label "p3" | Out-Null
-        if ($LASTEXITCODE -ne 0) {
-            throw "Failed to add default priority p3 to issue #$Number."
-        }
-    }
-}
+$stateLabels = Get-StateLabels -Config $config
+$priorityLabels = Get-PriorityLabels -Config $config
+$labelCatalog = Get-LabelCatalog -Config $config
+$defaultBranch = Get-DefaultBranch -Config $config
 
 function Get-AgentCommandsFromBody {
     param([Parameter(Mandatory = $true)][string]$Body)
@@ -169,44 +120,22 @@ function Get-ClarificationQuestions {
     return $questions
 }
 
-function New-SafeBranchName {
-    param([Parameter(Mandatory = $true)][string]$Title, [int]$Issue)
-
-    $slug = $Title.ToLowerInvariant()
-    $slug = [regex]::Replace($slug, '[^a-z0-9]+', '-')
-    $slug = $slug.Trim('-')
-    if ($slug.Length -gt 48) {
-        $slug = $slug.Substring(0, 48).Trim('-')
-    }
-
-    if ([string]::IsNullOrWhiteSpace($slug)) {
-        $slug = "task"
-    }
-
-    return "issue/$Issue-$slug"
-}
-
-function Assert-CleanWorktree {
-    $status = git status --porcelain
-    if ($LASTEXITCODE -ne 0) {
-        throw "Unable to inspect git status."
-    }
-
-    if (-not [string]::IsNullOrWhiteSpace(($status -join ""))) {
-        throw "Working tree is not clean. Commit or stash changes before running the issue processor."
-    }
-}
-
-function Invoke-GhComment {
+function Ensure-IssueHasPriority {
     param(
+        [Parameter(Mandatory = $true)]$Issue,
         [Parameter(Mandatory = $true)][string]$Repository,
-        [Parameter(Mandatory = $true)][int]$Number,
-        [Parameter(Mandatory = $true)][string]$Body
+        [Parameter(Mandatory = $true)][int]$Number
     )
 
-    gh issue comment $Number --repo $Repository --body $Body | Out-Null
-    if ($LASTEXITCODE -ne 0) {
-        throw "Failed to comment on issue #$Number."
+    $labelNames = @($Issue.labels | ForEach-Object { $_.name })
+    $priority = $priorityLabels | Where-Object { $labelNames -contains $_ } | Select-Object -First 1
+
+    if ($null -eq $priority) {
+        $defaultPrio = Get-DefaultPriority -Config $config
+        gh issue edit $Number --repo $Repository --add-label $defaultPrio | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "Impossibile aggiungere la priorita predefinita '$defaultPrio' all'issue #$Number."
+        }
     }
 }
 
@@ -216,23 +145,23 @@ Require-Command "dotnet"
 
 Push-Location $ProjectRoot
 try {
-    Ensure-WorkflowLabels -Repository $Repo
+    Ensure-WorkflowLabels -Repository $Repo -LabelCatalog $labelCatalog
 
     $issueJson = gh issue view $IssueNumber --repo $Repo --json number,title,body,url,state,labels
     if ($LASTEXITCODE -ne 0) {
-        throw "Failed to read GitHub issue #$IssueNumber from $Repo."
+        throw "Impossibile leggere l'issue #$IssueNumber da $Repo."
     }
 
     $issue = $issueJson | ConvertFrom-Json
     if ($issue.state -ne "OPEN") {
-        Write-Host "Issue #$IssueNumber is not open. Nothing to do."
+        Write-Host "Issue #$IssueNumber non e aperta. Nessuna azione."
         return
     }
 
     Ensure-IssueHasPriority -Issue $issue -Repository $Repo -Number $IssueNumber
 
     if (-not $SkipStateManagement) {
-        Set-IssueWorkflowState -Repository $Repo -Number $IssueNumber -State "in progress"
+        Set-IssueWorkflowState -Repository $Repo -Number $IssueNumber -State "in progress" -AllStateLabels $stateLabels
     }
 
     $commands = Get-AgentCommandsFromBody -Body $issue.body
@@ -253,7 +182,7 @@ try {
         }
 
         if (-not $SkipStateManagement) {
-            Set-IssueWorkflowState -Repository $Repo -Number $IssueNumber -State "wf reply"
+            Set-IssueWorkflowState -Repository $Repo -Number $IssueNumber -State "wf reply" -AllStateLabels $stateLabels
         }
 
         return
@@ -261,20 +190,20 @@ try {
 
     Assert-CleanWorktree
 
-    git fetch origin main
-    if ($LASTEXITCODE -ne 0) { throw "git fetch origin main failed." }
+    git fetch origin $defaultBranch
+    if ($LASTEXITCODE -ne 0) { throw "git fetch origin $defaultBranch fallito." }
 
-    git checkout main
-    if ($LASTEXITCODE -ne 0) { throw "git checkout main failed." }
+    git checkout $defaultBranch
+    if ($LASTEXITCODE -ne 0) { throw "git checkout $defaultBranch fallito." }
 
-    git pull --ff-only origin main
-    if ($LASTEXITCODE -ne 0) { throw "git pull --ff-only origin main failed." }
+    git pull --ff-only origin $defaultBranch
+    if ($LASTEXITCODE -ne 0) { throw "git pull --ff-only origin $defaultBranch fallito." }
 
-    $workingBranch = "main"
+    $workingBranch = $defaultBranch
     if (-not $PushMain) {
         $workingBranch = New-SafeBranchName -Title $issue.title -Issue $IssueNumber
         git checkout -B $workingBranch
-        if ($LASTEXITCODE -ne 0) { throw "git checkout -B $workingBranch failed." }
+        if ($LASTEXITCODE -ne 0) { throw "git checkout -B $workingBranch fallito." }
     }
 
     foreach ($commandLine in $commands) {
@@ -286,12 +215,12 @@ try {
         Write-Host "Running: nocodex $($tokens -join ' ')"
         & dotnet run --project src/NocodeX.Cli/NocodeX.Cli.csproj -- @tokens
         if ($LASTEXITCODE -ne 0) {
-            throw "Command failed: nocodex $commandLine"
+            throw "Comando fallito: nocodex $commandLine"
         }
     }
 
     $changed = git status --porcelain
-    if ($LASTEXITCODE -ne 0) { throw "Unable to inspect git status after execution." }
+    if ($LASTEXITCODE -ne 0) { throw "Impossibile leggere lo stato git dopo l'esecuzione." }
 
     if ([string]::IsNullOrWhiteSpace(($changed -join ""))) {
         $noChangeMessage = "Esecuzione completata su #$IssueNumber ma non sono state prodotte modifiche da committare."
@@ -301,33 +230,29 @@ try {
         }
 
         if (-not $SkipStateManagement) {
-            Set-IssueWorkflowState -Repository $Repo -Number $IssueNumber -State "wf reply"
+            Set-IssueWorkflowState -Repository $Repo -Number $IssueNumber -State "wf reply" -AllStateLabels $stateLabels
         }
 
         return
     }
 
     git add -A
-    if ($LASTEXITCODE -ne 0) { throw "git add failed." }
+    if ($LASTEXITCODE -ne 0) { throw "git add fallito." }
 
     $cleanTitle = [regex]::Replace($issue.title, '\s+', ' ').Trim()
-    if ($cleanTitle.Length -gt 60) {
-        $cleanTitle = $cleanTitle.Substring(0, 60).Trim()
-    }
-
-    $commitMessage = "feat: resolve #$IssueNumber $cleanTitle"
+    $commitMessage = Get-CommitMessage -Config $config -Prefix "feat" -IssueNumber $IssueNumber -Title $cleanTitle
     git commit -m $commitMessage
-    if ($LASTEXITCODE -ne 0) { throw "git commit failed." }
+    if ($LASTEXITCODE -ne 0) { throw "git commit fallito." }
 
     if ($PushMain) {
-        git push origin main
-        if ($LASTEXITCODE -ne 0) { throw "git push origin main failed." }
+        git push origin $defaultBranch
+        if ($LASTEXITCODE -ne 0) { throw "git push origin $defaultBranch fallito." }
 
         if (-not $SkipStateManagement) {
-            Set-IssueWorkflowState -Repository $Repo -Number $IssueNumber -State "completed"
+            Set-IssueWorkflowState -Repository $Repo -Number $IssueNumber -State "completed" -AllStateLabels $stateLabels
         }
 
-        $doneMessage = "Completato #$IssueNumber: commit pushato direttamente su main."
+        $doneMessage = "Completato #$IssueNumber: commit pushato direttamente su $defaultBranch."
         Write-Host $doneMessage
         if ($CommentOnIssue) {
             Invoke-GhComment -Repository $Repo -Number $IssueNumber -Body $doneMessage
@@ -335,23 +260,23 @@ try {
     }
     else {
         git push -u origin $workingBranch
-        if ($LASTEXITCODE -ne 0) { throw "git push -u origin $workingBranch failed." }
+        if ($LASTEXITCODE -ne 0) { throw "git push -u origin $workingBranch fallito." }
 
         if (-not $SkipStateManagement) {
-            Set-IssueWorkflowState -Repository $Repo -Number $IssueNumber -State "test"
+            Set-IssueWorkflowState -Repository $Repo -Number $IssueNumber -State "test" -AllStateLabels $stateLabels
         }
 
         $message = "Completato #$IssueNumber: modifiche pushate su branch $workingBranch e ticket in stato test."
 
         if ($CreatePullRequest) {
-            $prTitle = "Resolve #$IssueNumber - $cleanTitle"
-            $prBody = "Automated changes for #$IssueNumber"
-            gh pr create --repo $Repo --base main --head $workingBranch --title $prTitle --body $prBody | Out-Null
+            $prTitle = Get-PrTitle -Config $config -IssueNumber $IssueNumber -Title $cleanTitle
+            $prBody = Get-PrBody -Config $config -IssueNumber $IssueNumber
+            gh pr create --repo $Repo --base $defaultBranch --head $workingBranch --title $prTitle --body $prBody | Out-Null
             if ($LASTEXITCODE -ne 0) {
-                throw "Failed to create pull request for branch $workingBranch."
+                throw "Impossibile creare la pull request per il branch $workingBranch."
             }
 
-            $message += " PR creata verso main."
+            $message += " PR creata verso $defaultBranch."
         }
 
         Write-Host $message

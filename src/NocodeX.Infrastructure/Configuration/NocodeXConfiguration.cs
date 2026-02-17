@@ -24,6 +24,14 @@ public sealed class NocodeXConfiguration
     [JsonPropertyName("workspace_root")]
     public string WorkspaceRoot { get; set; } = ".";
 
+    /// <summary>Gets or sets the GitHub workflow configuration.</summary>
+    [JsonPropertyName("github")]
+    public GitHubConfiguration GitHub { get; set; } = new();
+
+    /// <summary>Gets or sets the label definitions for issue management.</summary>
+    [JsonPropertyName("labels")]
+    public LabelsConfiguration Labels { get; set; } = new();
+
     /// <summary>Gets or sets the LLM configuration section.</summary>
     [JsonPropertyName("llm")]
     public LlmConfiguration Llm { get; set; } = new();
@@ -65,6 +73,112 @@ public sealed class NocodeXConfiguration
         ReadCommentHandling = JsonCommentHandling.Skip,
         AllowTrailingCommas = true
     };
+}
+
+/// <summary>
+/// GitHub workflow and repository configuration.
+/// </summary>
+public sealed class GitHubConfiguration
+{
+    /// <summary>Gets or sets the target repository in owner/repo format.</summary>
+    [JsonPropertyName("target_repo")]
+    public string TargetRepo { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets whether to auto-create the repo if it does not exist.</summary>
+    [JsonPropertyName("auto_create")]
+    public bool AutoCreate { get; set; }
+
+    /// <summary>Gets or sets the default branch name.</summary>
+    [JsonPropertyName("default_branch")]
+    public string DefaultBranch { get; set; } = "main";
+
+    /// <summary>Gets or sets the repository visibility (private/public).</summary>
+    [JsonPropertyName("visibility")]
+    public string Visibility { get; set; } = "private";
+
+    /// <summary>Gets or sets the local workspace directory for cloning target repos.</summary>
+    [JsonPropertyName("workspace_directory")]
+    public string WorkspaceDirectory { get; set; } = "./workspaces";
+
+    /// <summary>Gets or sets the test command to run in the target repo.</summary>
+    [JsonPropertyName("test_command")]
+    public string TestCommand { get; set; } = "dotnet test *.sln -c Release";
+
+    /// <summary>Gets or sets the commit message conventions.</summary>
+    [JsonPropertyName("commit_conventions")]
+    public CommitConventionsConfiguration CommitConventions { get; set; } = new();
+
+    /// <summary>Gets or sets the PR template settings.</summary>
+    [JsonPropertyName("pr_template")]
+    public PrTemplateConfiguration PrTemplate { get; set; } = new();
+}
+
+/// <summary>
+/// Commit message conventions configuration.
+/// </summary>
+public sealed class CommitConventionsConfiguration
+{
+    /// <summary>Gets or sets the allowed commit prefix pattern.</summary>
+    [JsonPropertyName("prefix_pattern")]
+    public string PrefixPattern { get; set; } = "feat|fix|chore|refactor|docs|test";
+
+    /// <summary>Gets or sets the commit message template.</summary>
+    [JsonPropertyName("message_template")]
+    public string MessageTemplate { get; set; } = "{prefix}: resolve #{issue_number} {title}";
+
+    /// <summary>Gets or sets the max subject line length.</summary>
+    [JsonPropertyName("max_subject_length")]
+    public int MaxSubjectLength { get; set; } = 72;
+}
+
+/// <summary>
+/// Pull request template configuration.
+/// </summary>
+public sealed class PrTemplateConfiguration
+{
+    /// <summary>Gets or sets the PR title template.</summary>
+    [JsonPropertyName("title_template")]
+    public string TitleTemplate { get; set; } = "Resolve #{issue_number} - {title}";
+
+    /// <summary>Gets or sets the PR body template.</summary>
+    [JsonPropertyName("body_template")]
+    public string BodyTemplate { get; set; } = "Modifiche automatiche per #{issue_number}\n\nCloses #{issue_number}";
+}
+
+/// <summary>
+/// Label definitions for issue state and priority management.
+/// </summary>
+public sealed class LabelsConfiguration
+{
+    /// <summary>Gets or sets the workflow state labels.</summary>
+    [JsonPropertyName("states")]
+    public List<LabelDefinition> States { get; set; } = new();
+
+    /// <summary>Gets or sets the priority labels.</summary>
+    [JsonPropertyName("priorities")]
+    public List<LabelDefinition> Priorities { get; set; } = new();
+
+    /// <summary>Gets or sets the default priority label name.</summary>
+    [JsonPropertyName("default_priority")]
+    public string DefaultPriority { get; set; } = "p3";
+}
+
+/// <summary>
+/// A single label definition with name, color, and description.
+/// </summary>
+public sealed class LabelDefinition
+{
+    /// <summary>Gets or sets the label name.</summary>
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the label hex color (without #).</summary>
+    [JsonPropertyName("color")]
+    public string Color { get; set; } = "EDEDED";
+
+    /// <summary>Gets or sets the label description.</summary>
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = string.Empty;
 }
 
 /// <summary>

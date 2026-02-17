@@ -52,4 +52,5 @@ jobs:
         run: |
           ./scripts/test-and-release.ps1 `
             -Repo "${{ github.repository }}" `
-            -Branch "${{ steps.vars.outputs.branch }}"
+            -Branch "${{ steps.vars.outputs.branch }}" `
+            -ProjectRoot "."

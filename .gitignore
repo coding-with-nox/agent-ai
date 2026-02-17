@@ -85,6 +85,9 @@ coverage.*
 packages/
 !**/packages/build/
 
+# Agent workspaces (cloned target repos)
+workspaces/
+
 # Logs and diagnostics
 *.log
 *.pid

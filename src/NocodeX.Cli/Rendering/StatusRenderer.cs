@@ -29,6 +29,8 @@ public static class StatusRenderer
         table.AddRow("[bold]GPU:[/]", status.GpuStatus);
         table.AddRow("[bold]MCP:[/]", status.McpStatus);
         table.AddRow("[bold]ACP:[/]", status.AcpStatus);
+        table.AddRow("[bold]Target Repo:[/]", status.TargetRepo);
+        table.AddRow("[bold]Target Workspace:[/]", status.WorkspaceDirectory);
         table.AddRow("[bold]Workspace:[/]", status.WorkspacePath);
         table.AddRow("[bold]Limits:[/]", status.LimitsInfo);
 
@@ -62,6 +64,12 @@ public sealed class InitStatus
 
     /// <summary>Gets or sets the workspace path.</summary>
     public string WorkspacePath { get; set; } = ".";
+
+    /// <summary>Gets or sets the target GitHub repository.</summary>
+    public string TargetRepo { get; set; } = "(non configurato)";
+
+    /// <summary>Gets or sets the target workspace directory.</summary>
+    public string WorkspaceDirectory { get; set; } = "./workspaces";
 
     /// <summary>Gets or sets the limits info string.</summary>
     public string LimitsInfo { get; set; } = "default";

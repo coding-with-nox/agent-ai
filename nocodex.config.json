@@ -3,6 +3,42 @@
   "agent_version": "2.0.0",
   "workspace_root": ".",
 
+  "github": {
+    "target_repo": "owner/repo-name",
+    "auto_create": true,
+    "default_branch": "main",
+    "visibility": "private",
+    "workspace_directory": "./workspaces",
+    "test_command": "dotnet test *.sln -c Release",
+    "commit_conventions": {
+      "prefix_pattern": "feat|fix|chore|refactor|docs|test",
+      "message_template": "{prefix}: resolve #{issue_number} {title}",
+      "max_subject_length": 72
+    },
+    "pr_template": {
+      "title_template": "Resolve #{issue_number} - {title}",
+      "body_template": "Modifiche automatiche per #{issue_number}\n\nCloses #{issue_number}"
+    }
+  },
+
+  "labels": {
+    "states": [
+      { "name": "todo", "color": "1D76DB", "description": "Pronta per il pickup dell'agente" },
+      { "name": "in progress", "color": "FBCA04", "description": "L'agente sta implementando" },
+      { "name": "wf reply", "color": "D93F0B", "description": "In attesa di chiarimenti" },
+      { "name": "test", "color": "5319E7", "description": "Pronta per i test CI" },
+      { "name": "release", "color": "0E8A16", "description": "Test superati, PR pronta" },
+      { "name": "completed", "color": "0E8A16", "description": "Completata" }
+    ],
+    "priorities": [
+      { "name": "p0", "color": "B60205", "description": "Priorita massima" },
+      { "name": "p1", "color": "D93F0B", "description": "Priorita alta" },
+      { "name": "p2", "color": "FBCA04", "description": "Priorita media" },
+      { "name": "p3", "color": "0E8A16", "description": "Priorita bassa" }
+    ],
+    "default_priority": "p3"
+  },
+
   "llm": {
     "primary_provider": "vllm-gpu-server",
     "providers": [

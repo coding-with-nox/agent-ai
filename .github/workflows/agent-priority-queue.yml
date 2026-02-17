@@ -1,4 +1,4 @@
-﻿name: Agent Priority Queue
+name: Agent Priority Queue
 
 on:
   schedule:
@@ -19,26 +19,41 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout agent-ai
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Read target repo from config
+        id: config
+        shell: pwsh
+        run: |
+          $c = Get-Content nocodex.config.json | ConvertFrom-Json
+          "target_repo=$($c.github.target_repo)" >> $env:GITHUB_OUTPUT
+          "default_branch=$($c.github.default_branch)" >> $env:GITHUB_OUTPUT
+          "workspace_directory=$($c.github.workspace_directory)" >> $env:GITHUB_OUTPUT
+
+      - name: Clone target repository
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          mkdir -p "${{ steps.config.outputs.workspace_directory }}"
+          REPO_NAME=$(echo "${{ steps.config.outputs.target_repo }}" | cut -d'/' -f2)
+          TARGET_PATH="${{ steps.config.outputs.workspace_directory }}/$REPO_NAME"
+          gh repo clone "${{ steps.config.outputs.target_repo }}" "$TARGET_PATH" -- --depth=0
+          cd "$TARGET_PATH"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
 
-      - name: Configure git identity
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
       - name: Process highest-priority todo issue
         shell: pwsh
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          ./scripts/process-priority-queue.ps1 `
-            -Repo "${{ github.repository }}" `
-            -CommentOnIssue
+          ./scripts/process-priority-queue.ps1 -CommentOnIssue
