@@ -96,10 +96,8 @@ public static class ServiceCollectionExtensions
         NocodeXConfiguration config)
     {
         // Register providers
-        foreach (LlmProviderJsonConfig providerJson in config.Llm.Providers)
+        foreach (LlmProviderConfig providerConfig in config.Llm.Providers)
         {
-            LlmProviderConfig providerConfig = providerJson.ToProviderConfig();
-
             services.AddSingleton<ILlmProvider>(sp =>
             {
                 IHttpClientFactory httpFactory = sp.GetRequiredService<IHttpClientFactory>();
