@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
     [string]$Repo,
@@ -12,17 +12,78 @@ param(
 
     [switch]$CreatePullRequest,
 
-    [switch]$CommentOnIssue
+    [switch]$CommentOnIssue,
+
+    [switch]$SkipStateManagement
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+$script:StateLabels = @("todo", "in progress", "wf reply", "test", "release", "completed")
+$script:PriorityLabels = @("p0", "p1", "p2", "p3")
+
+$script:LabelCatalog = @(
+    @{ Name = "todo"; Color = "1D76DB"; Description = "Ready for agent pickup" },
+    @{ Name = "in progress"; Color = "FBCA04"; Description = "Agent is implementing" },
+    @{ Name = "wf reply"; Color = "D93F0B"; Description = "Waiting for user clarification" },
+    @{ Name = "test"; Color = "5319E7"; Description = "Ready for CI tests" },
+    @{ Name = "release"; Color = "0E8A16"; Description = "Tests passed, PR ready" },
+    @{ Name = "completed"; Color = "0E8A16"; Description = "PR merged and task completed" },
+    @{ Name = "p0"; Color = "B60205"; Description = "Highest priority" },
+    @{ Name = "p1"; Color = "D93F0B"; Description = "High priority" },
+    @{ Name = "p2"; Color = "FBCA04"; Description = "Medium priority" },
+    @{ Name = "p3"; Color = "0E8A16"; Description = "Low priority" }
+)
 
 function Require-Command {
     param([Parameter(Mandatory = $true)][string]$Name)
 
     if (-not (Get-Command $Name -ErrorAction SilentlyContinue)) {
         throw "Required command '$Name' was not found in PATH."
+    }
+}
+
+function Ensure-WorkflowLabels {
+    param([Parameter(Mandatory = $true)][string]$Repository)
+
+    foreach ($label in $script:LabelCatalog) {
+        gh label create $label.Name --repo $Repository --color $label.Color --description $label.Description --force | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "Failed to ensure label '$($label.Name)'."
+        }
+    }
+}
+
+function Set-IssueWorkflowState {
+    param(
+        [Parameter(Mandatory = $true)][string]$Repository,
+        [Parameter(Mandatory = $true)][int]$Number,
+        [Parameter(Mandatory = $true)][string]$State
+    )
+
+    $remove = $script:StateLabels -join ","
+    gh issue edit $Number --repo $Repository --remove-label $remove --add-label $State | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to set workflow state '$State' on issue #$Number."
+    }
+}
+
+function Ensure-IssueHasPriority {
+    param(
+        [Parameter(Mandatory = $true)]$Issue,
+        [Parameter(Mandatory = $true)][string]$Repository,
+        [Parameter(Mandatory = $true)][int]$Number
+    )
+
+    $labelNames = @($Issue.labels | ForEach-Object { $_.name })
+    $priority = $script:PriorityLabels | Where-Object { $labelNames -contains $_ } | Select-Object -First 1
+
+    if ($null -eq $priority) {
+        gh issue edit $Number --repo $Repository --add-label "p3" | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "Failed to add default priority p3 to issue #$Number."
+        }
     }
 }
 
@@ -155,7 +216,9 @@ Require-Command "dotnet"
 
 Push-Location $ProjectRoot
 try {
-    $issueJson = gh issue view $IssueNumber --repo $Repo --json number,title,body,url,state
+    Ensure-WorkflowLabels -Repository $Repo
+
+    $issueJson = gh issue view $IssueNumber --repo $Repo --json number,title,body,url,state,labels
     if ($LASTEXITCODE -ne 0) {
         throw "Failed to read GitHub issue #$IssueNumber from $Repo."
     }
@@ -164,6 +227,12 @@ try {
     if ($issue.state -ne "OPEN") {
         Write-Host "Issue #$IssueNumber is not open. Nothing to do."
         return
+    }
+
+    Ensure-IssueHasPriority -Issue $issue -Repository $Repo -Number $IssueNumber
+
+    if (-not $SkipStateManagement) {
+        Set-IssueWorkflowState -Repository $Repo -Number $IssueNumber -State "in progress"
     }
 
     $commands = Get-AgentCommandsFromBody -Body $issue.body
@@ -181,6 +250,10 @@ try {
         Write-Host $comment
         if ($CommentOnIssue) {
             Invoke-GhComment -Repository $Repo -Number $IssueNumber -Body $comment
+        }
+
+        if (-not $SkipStateManagement) {
+            Set-IssueWorkflowState -Repository $Repo -Number $IssueNumber -State "wf reply"
         }
 
         return
@@ -226,6 +299,11 @@ try {
         if ($CommentOnIssue) {
             Invoke-GhComment -Repository $Repo -Number $IssueNumber -Body $noChangeMessage
         }
+
+        if (-not $SkipStateManagement) {
+            Set-IssueWorkflowState -Repository $Repo -Number $IssueNumber -State "wf reply"
+        }
+
         return
     }
 
@@ -245,7 +323,11 @@ try {
         git push origin main
         if ($LASTEXITCODE -ne 0) { throw "git push origin main failed." }
 
-        $doneMessage = "Completato #$IssueNumber: commit pushato direttamente su `main`."
+        if (-not $SkipStateManagement) {
+            Set-IssueWorkflowState -Repository $Repo -Number $IssueNumber -State "completed"
+        }
+
+        $doneMessage = "Completato #$IssueNumber: commit pushato direttamente su main."
         Write-Host $doneMessage
         if ($CommentOnIssue) {
             Invoke-GhComment -Repository $Repo -Number $IssueNumber -Body $doneMessage
@@ -255,7 +337,11 @@ try {
         git push -u origin $workingBranch
         if ($LASTEXITCODE -ne 0) { throw "git push -u origin $workingBranch failed." }
 
-        $message = "Completato #$IssueNumber: modifiche pushate su branch `$workingBranch`."
+        if (-not $SkipStateManagement) {
+            Set-IssueWorkflowState -Repository $Repo -Number $IssueNumber -State "test"
+        }
+
+        $message = "Completato #$IssueNumber: modifiche pushate su branch $workingBranch e ticket in stato test."
 
         if ($CreatePullRequest) {
             $prTitle = "Resolve #$IssueNumber - $cleanTitle"
@@ -265,7 +351,7 @@ try {
                 throw "Failed to create pull request for branch $workingBranch."
             }
 
-            $message += " PR creata verso `main`."
+            $message += " PR creata verso main."
         }
 
         Write-Host $message

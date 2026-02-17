@@ -1,7 +1,7 @@
 name: Agent Task
 description: Task for NOcodeX autonomous execution
 title: "[agent] "
-labels: ["agent:run"]
+labels: ["todo", "p2"]
 body:
   - type: textarea
     id: goal
@@ -53,7 +53,7 @@ body:
     id: push_mode
     attributes:
       label: Push mode
-      description: Safer default is branch + PR. Use label `agent:push-main` only if you need direct push to main.
+      description: Default flow is branch + PR after tests (state release). Use manual runner only for exceptional direct push.
       options:
         - Branch + PR
         - Direct push to main

@@ -12,8 +12,6 @@ on:
         required: true
         default: false
         type: boolean
-  issues:
-    types: [labeled]
 
 permissions:
   contents: write
@@ -22,7 +20,6 @@ permissions:
 
 jobs:
   run-agent:
-    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'agent:run' || github.event.label.name == 'agent:push-main'
     runs-on: ubuntu-latest
 
     steps:
@@ -36,21 +33,17 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Resolve inputs
         id: vars
         shell: bash
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "issue=${{ inputs.issue_number }}" >> "$GITHUB_OUTPUT"
-            echo "push_main=${{ inputs.push_main }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "issue=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
-            if [ "${{ github.event.label.name }}" = "agent:push-main" ]; then
-              echo "push_main=true" >> "$GITHUB_OUTPUT"
-            else
-              echo "push_main=false" >> "$GITHUB_OUTPUT"
-            fi
-          fi
+          echo "issue=${{ inputs.issue_number }}" >> "$GITHUB_OUTPUT"
+          echo "push_main=${{ inputs.push_main }}" >> "$GITHUB_OUTPUT"
 
       - name: Run issue processor (branch mode)
         if: steps.vars.outputs.push_main != 'true'
@@ -61,7 +54,6 @@ jobs:
           ./scripts/process-github-issue.ps1 `
             -Repo "${{ github.repository }}" `
             -IssueNumber "${{ steps.vars.outputs.issue }}" `
-            -CreatePullRequest `
             -CommentOnIssue
 
       - name: Run issue processor (main mode)

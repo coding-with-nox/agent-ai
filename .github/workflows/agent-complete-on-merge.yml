@@ -1,0 +1,28 @@
+﻿name: Agent Complete On Merge
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  issues: write
+  pull-requests: read
+
+jobs:
+  complete:
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'issue/')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Move issue to completed
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./scripts/complete-on-merge.ps1 `
+            -Repo "${{ github.repository }}" `
+            -Branch "${{ github.event.pull_request.head.ref }}" `
+            -PullRequestUrl "${{ github.event.pull_request.html_url }}"

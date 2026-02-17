@@ -1,0 +1,26 @@
+﻿name: Agent Requeue On Reply
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+
+jobs:
+  requeue:
+    if: github.event.issue.pull_request == null && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Requeue issue when user replies
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./scripts/requeue-on-reply.ps1 `
+            -Repo "${{ github.repository }}" `
+            -IssueNumber "${{ github.event.issue.number }}"
