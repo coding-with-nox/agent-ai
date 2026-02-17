@@ -1,4 +1,5 @@
 - [Home](Home)
+- [Logging e Monitoring](Logging-and-Monitoring)
 - [GitHub Issue Automation](GitHub-Issue-Automation)
 - [Repository README](https://github.com/coding-with-nox/agent-ai/blob/main/README.md)
 - [Deploy Guide](https://github.com/coding-with-nox/agent-ai/blob/main/docs/deploy.md)

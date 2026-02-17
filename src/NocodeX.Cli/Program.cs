@@ -12,14 +12,22 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Formatting.Compact;
 
-// Configure Serilog
+// Configure Serilog — structured JSON for machine consumption + plain text for humans
+string logDir = Path.Combine(Directory.GetCurrentDirectory(), ".nocodex");
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Application", "NocodeX.Cli")
     .WriteTo.File(
-        Path.Combine(Directory.GetCurrentDirectory(), ".nocodex", "nocodex.log"),
+        Path.Combine(logDir, "nocodex.log"),
         rollingInterval: RollingInterval.Day,
         outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.File(
+        new CompactJsonFormatter(),
+        Path.Combine(logDir, "nocodex.json.log"),
+        rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
 // Load configuration

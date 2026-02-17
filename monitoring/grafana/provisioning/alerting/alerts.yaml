@@ -1,0 +1,107 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: NocodeX Critical Errors
+    folder: NocodeX
+    interval: 1m
+    rules:
+      - uid: nocodex-critical-error-rate
+        title: "NocodeX — Critical Error Rate"
+        condition: threshold
+        data:
+          - refId: logs
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'sum(count_over_time({job="nocodex", format="json"} | json | level =~ `Error|Fatal` [5m]))'
+              refId: logs
+          - refId: threshold
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: logs
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 5
+                  operator:
+                    type: and
+                  reducer:
+                    type: last
+              refId: threshold
+        noDataState: OK
+        execErrState: Alerting
+        for: 2m
+        annotations:
+          summary: "High critical error rate detected in NocodeX"
+          description: "More than 5 Error/Fatal log entries in the last 5 minutes."
+        labels:
+          severity: critical
+          team: backend
+
+      - uid: nocodex-fatal-any
+        title: "NocodeX — Fatal Log Detected"
+        condition: threshold
+        data:
+          - refId: logs
+            relativeTimeRange:
+              from: 60
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'sum(count_over_time({job="nocodex", format="json"} | json | level = `Fatal` [1m]))'
+              refId: logs
+          - refId: threshold
+            relativeTimeRange:
+              from: 60
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: logs
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+                  operator:
+                    type: and
+                  reducer:
+                    type: last
+              refId: threshold
+        noDataState: OK
+        execErrState: Alerting
+        for: 0s
+        annotations:
+          summary: "Fatal log detected in NocodeX"
+          description: "At least one Fatal-level log line was written in the last minute. Immediate investigation required."
+        labels:
+          severity: critical
+          team: backend
+
+contactPoints:
+  - orgId: 1
+    name: default-email
+    receivers:
+      - uid: default-email-receiver
+        type: email
+        settings:
+          addresses: ops@nocodex.local
+        disableResolveMessage: false
+
+policies:
+  - orgId: 1
+    receiver: default-email
+    group_by:
+      - alertname
+      - severity
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 4h
