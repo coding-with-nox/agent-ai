@@ -1,5 +1,6 @@
 using NocodeX.Core.Enums;
 using NocodeX.Core.Interfaces;
+using NocodeX.Core.Models;
 using NocodeX.Core.Models.Llm;
 using NocodeX.Infrastructure.Acp;
 using NocodeX.Infrastructure.AuditLog;
