@@ -174,6 +174,32 @@ public static class ServiceCollectionExtensions
             return new LlmRequestRouter(clientManager, config.Llm.RoutingRules, logger);
         });
 
+        // MCP clients from configuration (stdio transport only in current implementation).
+        foreach (McpServerConfig server in config.McpServers.Where(s => s.Enabled))
+        {
+            if (!string.Equals(server.Transport, "stdio", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            services.AddSingleton<IMcpClient>(sp =>
+            {
+                ILogger<McpStdioClient> logger = sp.GetRequiredService<ILogger<McpStdioClient>>();
+                return new McpStdioClient(server, logger);
+            });
+        }
+
+        // ACP agents from configuration.
+        foreach (AcpAgentConfig agent in config.AcpAgents.Where(a => a.Enabled))
+        {
+            services.AddSingleton<IAcpClient>(sp =>
+            {
+                ILlmClientManager llmClientManager = sp.GetRequiredService<ILlmClientManager>();
+                ILogger<AcpAgentClient> logger = sp.GetRequiredService<ILogger<AcpAgentClient>>();
+                return new AcpAgentClient(agent, llmClientManager, logger);
+            });
+        }
+
         return services;
     }
 }

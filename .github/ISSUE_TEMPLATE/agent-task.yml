@@ -1,0 +1,61 @@
+name: Agent Task
+description: Task for NOcodeX autonomous execution
+title: "[agent] "
+labels: ["agent:run"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What outcome should the agent deliver?
+      placeholder: |
+        Describe the expected result in one paragraph.
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What files, modules, or boundaries should be respected?
+      placeholder: |
+        Include constraints, exclusions, and architectural boundaries.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Concrete checks to consider the issue done
+      placeholder: |
+        - Build succeeds
+        - Tests X and Y pass
+        - Endpoint Z responds with status 200
+    validations:
+      required: true
+
+  - type: textarea
+    id: commands
+    attributes:
+      label: Agent Commands
+      description: One command per line inside a nocodex fenced block
+      placeholder: |
+        ```nocodex
+        stack set dotnet-clean
+        llm status
+        gen:endpoint POST /api/orders
+        ```
+    validations:
+      required: true
+
+  - type: dropdown
+    id: push_mode
+    attributes:
+      label: Push mode
+      description: Safer default is branch + PR. Use label `agent:push-main` only if you need direct push to main.
+      options:
+        - Branch + PR
+        - Direct push to main
+    validations:
+      required: true

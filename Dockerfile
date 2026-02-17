@@ -15,6 +15,10 @@ RUN dotnet publish src/NocodeX.Cli/NocodeX.Cli.csproj -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/runtime:10.0 AS runtime
 WORKDIR /workspace
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends nodejs npm \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=build /app/publish /opt/nocodex
 
 ENTRYPOINT ["dotnet", "/opt/nocodex/NocodeX.Cli.dll"]

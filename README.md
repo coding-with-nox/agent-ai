@@ -6,6 +6,7 @@ NOcodeX is a command-driven .NET 10 CLI agent scaffold organized with Clean Arch
 
 - Detailed usage wiki (step-by-step): `https://github.com/coding-with-nox/agent-ai/wiki`
 - Deployment notes: `DOCS/deploy.md`
+- GitHub issue automation: `DOCS/github-agent.md`
 - Project overview: `DOCS/description.md`
 - Wiki source files (auto-sync): `DOCS/wiki`
 

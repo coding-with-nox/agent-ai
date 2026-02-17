@@ -4,7 +4,7 @@
   "workspace_root": ".",
 
   "llm": {
-    "primary_provider": "ollama-local",
+    "primary_provider": "vllm-gpu-server",
     "providers": [
       {
         "provider_id": "ollama-local",
@@ -23,7 +23,7 @@
         "type": "vllm",
         "host": "192.168.1.100",
         "port": 8000,
-        "model": "deepseek-ai/DeepSeek-Coder-V2-Instruct",
+        "model": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
         "api_key_env": "VLLM_API_KEY",
         "context_window_override": 65536,
         "default_temperature": 0.1,
@@ -51,7 +51,7 @@
         "timeout_seconds": 300
       }
     ],
-    "fallback_chain": ["ollama-local", "vllm-gpu-server"],
+    "fallback_chain": ["vllm-gpu-server", "ollama-local"],
     "routing_rules": [
       {
         "condition": "task_complexity >= 'high'",
@@ -88,6 +88,12 @@
       "id": "mcp-terminal",
       "transport": "stdio",
       "endpoint": "internal://shell",
+      "enabled": true
+    },
+    {
+      "id": "mcp-context7",
+      "transport": "stdio",
+      "endpoint": "npx -y @upstash/context7-mcp",
       "enabled": true
     }
   ],

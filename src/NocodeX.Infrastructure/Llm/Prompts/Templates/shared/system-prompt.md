@@ -25,3 +25,4 @@ Multiple files should use multiple `<code>` blocks.
 - Follow the stack's conventions strictly
 - Handle errors properly
 - Use dependency injection where appropriate
+- If requirements are ambiguous or incomplete, ask concise clarification questions before generating code

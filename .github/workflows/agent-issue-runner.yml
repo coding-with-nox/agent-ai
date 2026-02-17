@@ -1,0 +1,77 @@
+name: Agent Issue Runner
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Issue number to process"
+        required: true
+        type: string
+      push_main:
+        description: "Push directly to main"
+        required: true
+        default: false
+        type: boolean
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  run-agent:
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'agent:run' || github.event.label.name == 'agent:push-main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Resolve inputs
+        id: vars
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "issue=${{ inputs.issue_number }}" >> "$GITHUB_OUTPUT"
+            echo "push_main=${{ inputs.push_main }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "issue=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+            if [ "${{ github.event.label.name }}" = "agent:push-main" ]; then
+              echo "push_main=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "push_main=false" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Run issue processor (branch mode)
+        if: steps.vars.outputs.push_main != 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./scripts/process-github-issue.ps1 `
+            -Repo "${{ github.repository }}" `
+            -IssueNumber "${{ steps.vars.outputs.issue }}" `
+            -CreatePullRequest `
+            -CommentOnIssue
+
+      - name: Run issue processor (main mode)
+        if: steps.vars.outputs.push_main == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./scripts/process-github-issue.ps1 `
+            -Repo "${{ github.repository }}" `
+            -IssueNumber "${{ steps.vars.outputs.issue }}" `
+            -PushMain `
+            -CommentOnIssue

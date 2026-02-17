@@ -8,6 +8,8 @@ services:
       VLLM_API_KEY: ${VLLM_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       TGI_API_KEY: ${TGI_API_KEY:-}
+      CONTEXT7_API_KEY: ${CONTEXT7_API_KEY:-}
+      GH_TOKEN: ${GH_TOKEN:-}
     working_dir: /workspace
     volumes:
       - ./:/workspace
