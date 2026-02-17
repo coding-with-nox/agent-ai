@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NocodeX Config UI</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; background: #0b1020; color: #e4e7ef; }
+    header { padding: 16px 20px; background: #111a33; border-bottom: 1px solid #223; }
+    main { padding: 20px; max-width: 1100px; margin: 0 auto; }
+    .row { display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+    .card { background: #121a2e; border: 1px solid #2a3350; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+    label { display: block; font-size: 12px; margin-bottom: 4px; color: #9cb0dd; }
+    input, select, textarea { width: 100%; background: #0e1528; color: #e4e7ef; border: 1px solid #354168; border-radius: 8px; padding: 9px; }
+    textarea { min-height: 320px; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .col { flex: 1; min-width: 220px; }
+    button { background: #4f7cff; color: white; border: none; border-radius: 8px; padding: 10px 14px; cursor: pointer; }
+    button.secondary { background: #263252; }
+    #status { margin-left: 10px; font-size: 14px; color: #90ee90; }
+  </style>
+</head>
+<body>
+<header>
+  <strong>NocodeX Agent Configurator</strong>
+</header>
+<main>
+  <div class="card">
+    <div class="row">
+      <div class="col">
+        <label>Environment</label>
+        <input id="environment" placeholder="development" />
+      </div>
+      <div class="col">
+        <label>Agent version</label>
+        <input id="agentVersion" placeholder="2.0.0" />
+      </div>
+      <div class="col">
+        <label>Workspace root</label>
+        <input id="workspaceRoot" placeholder="." />
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <label>GitHub target repo</label>
+        <input id="targetRepo" placeholder="owner/repo" />
+      </div>
+      <div class="col">
+        <label>Workspace directory</label>
+        <input id="workspaceDirectory" placeholder="./workspaces" />
+      </div>
+      <div class="col">
+        <label>Primary LLM provider</label>
+        <input id="primaryProvider" placeholder="ollama-local" />
+      </div>
+    </div>
+    <div class="row">
+      <button id="loadBtn" class="secondary">Ricarica da file</button>
+      <button id="saveBtn">Salva configurazione</button>
+      <span id="status"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <label>JSON completo (avanzato)</label>
+    <textarea id="rawJson"></textarea>
+  </div>
+</main>
+
+<script>
+  const status = document.getElementById('status');
+  const rawJson = document.getElementById('rawJson');
+
+  function setStatus(msg, ok = true) {
+    status.textContent = msg;
+    status.style.color = ok ? '#90ee90' : '#ff8a8a';
+  }
+
+  function fillForm(cfg) {
+    document.getElementById('environment').value = cfg.environment || '';
+    document.getElementById('agentVersion').value = cfg.agent_version || '';
+    document.getElementById('workspaceRoot').value = cfg.workspace_root || '';
+    document.getElementById('targetRepo').value = cfg.github?.target_repo || '';
+    document.getElementById('workspaceDirectory').value = cfg.github?.workspace_directory || '';
+    document.getElementById('primaryProvider').value = cfg.llm?.primary_provider || '';
+    rawJson.value = JSON.stringify(cfg, null, 2);
+  }
+
+  function mergeFromForm(base) {
+    const cfg = structuredClone(base || {});
+    cfg.environment = document.getElementById('environment').value.trim();
+    cfg.agent_version = document.getElementById('agentVersion').value.trim();
+    cfg.workspace_root = document.getElementById('workspaceRoot').value.trim();
+    cfg.github = cfg.github || {};
+    cfg.github.target_repo = document.getElementById('targetRepo').value.trim();
+    cfg.github.workspace_directory = document.getElementById('workspaceDirectory').value.trim();
+    cfg.llm = cfg.llm || {};
+    cfg.llm.primary_provider = document.getElementById('primaryProvider').value.trim();
+    return cfg;
+  }
+
+  async function loadConfig() {
+    try {
+      const res = await fetch('/api/config');
+      const cfg = await res.json();
+      fillForm(cfg);
+      setStatus('Configurazione caricata');
+    } catch {
+      setStatus('Errore nel caricamento', false);
+    }
+  }
+
+  document.getElementById('loadBtn').addEventListener('click', loadConfig);
+
+  document.getElementById('saveBtn').addEventListener('click', async () => {
+    try {
+      let parsed = JSON.parse(rawJson.value || '{}');
+      parsed = mergeFromForm(parsed);
+
+      const res = await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(parsed)
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        setStatus(`Salvataggio fallito: ${err.message || 'errore'}`, false);
+        return;
+      }
+
+      rawJson.value = JSON.stringify(parsed, null, 2);
+      setStatus('Configurazione salvata');
+    } catch {
+      setStatus('JSON non valido nel blocco avanzato', false);
+    }
+  });
+
+  loadConfig();
+</script>
+</body>
+</html>

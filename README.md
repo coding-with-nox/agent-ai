@@ -50,3 +50,17 @@ If no stack is configured, stack-dependent generation commands fail with a guide
 - Validation: `FluentValidation`
 - Logging package reference: `Serilog`
 
+
+## Web configurator
+
+È disponibile una UI web leggera per generare/modificare `nocodex.config.json` senza fermare l'agente.
+
+```bash
+docker compose up --build nocodex-config-web
+```
+
+Apri `http://localhost:8088`.
+
+- Se il file config manca o è JSON malformato, l'agente logga l'errore e continua con valori di default (no crash).
+- La UI salva il file in `/workspace/nocodex.config.json` (montato dal volume locale).
+

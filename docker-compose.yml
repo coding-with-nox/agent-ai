@@ -17,3 +17,17 @@ services:
     tty: true
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  nocodex-config-web:
+    image: ${DOCKER_IMAGE:-ghcr.io/owner/agent-ai}:${DOCKER_TAG:-local}
+    depends_on:
+      - nocodex
+    command: ["dotnet", "/opt/nocodex-web/NocodeX.ConfigWeb.dll"]
+    environment:
+      ASPNETCORE_URLS: http://0.0.0.0:8088
+      NOCODEX_CONFIG_PATH: /workspace/nocodex.config.json
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    ports:
+      - "8088:8088"
