@@ -31,8 +31,15 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 // Load configuration
+using ILoggerFactory bootstrapLoggerFactory = LoggerFactory.Create(builder =>
+{
+    builder.ClearProviders();
+    builder.AddSerilog(Log.Logger);
+});
+
+ILogger bootstrapLogger = bootstrapLoggerFactory.CreateLogger("Bootstrap");
 string configPath = Path.Combine(Directory.GetCurrentDirectory(), "nocodex.config.json");
-NocodeXConfiguration config = NocodeXConfiguration.Load(configPath);
+NocodeXConfiguration config = NocodeXConfiguration.Load(configPath, bootstrapLogger);
 
 // Build DI container
 ServiceCollection services = new();

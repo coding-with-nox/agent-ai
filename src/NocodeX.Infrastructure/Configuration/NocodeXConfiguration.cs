@@ -62,9 +62,57 @@ public sealed class NocodeXConfiguration
             return new NocodeXConfiguration();
         }
 
-        string json = File.ReadAllText(filePath);
-        NocodeXConfiguration? config = JsonSerializer.Deserialize<NocodeXConfiguration>(json, JsonOpts);
-        return config ?? new NocodeXConfiguration();
+        try
+        {
+            string json = File.ReadAllText(filePath);
+            NocodeXConfiguration? config = JsonSerializer.Deserialize<NocodeXConfiguration>(json, JsonOpts);
+
+            if (config is null)
+            {
+                logger?.LogError("Config file at {Path} is empty or invalid, using defaults", filePath);
+                return new NocodeXConfiguration();
+            }
+
+            foreach (string warning in Validate(config))
+            {
+                logger?.LogError("Configuration warning: {Warning}", warning);
+            }
+
+            return config;
+        }
+        catch (JsonException ex)
+        {
+            logger?.LogError(ex, "Invalid JSON in config file {Path}, using defaults", filePath);
+            return new NocodeXConfiguration();
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "Failed to read config file {Path}, using defaults", filePath);
+            return new NocodeXConfiguration();
+        }
+    }
+
+    private static IReadOnlyList<string> Validate(NocodeXConfiguration config)
+    {
+        List<string> warnings = new();
+
+        if (string.IsNullOrWhiteSpace(config.GitHub.TargetRepo))
+        {
+            warnings.Add("github.target_repo is empty.");
+        }
+
+        if (config.Llm.Providers.Count == 0)
+        {
+            warnings.Add("llm.providers is empty.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(config.Llm.PrimaryProvider) &&
+            config.Llm.Providers.All(p => !string.Equals(p.ProviderId, config.Llm.PrimaryProvider, StringComparison.OrdinalIgnoreCase)))
+        {
+            warnings.Add($"llm.primary_provider '{config.Llm.PrimaryProvider}' is not present in llm.providers.");
+        }
+
+        return warnings;
     }
 
     private static readonly JsonSerializerOptions JsonOpts = new()
@@ -164,7 +212,7 @@ public sealed class LabelsConfiguration
 }
 
 /// <summary>
-/// A single label definition with name, color, and description.
+/// Generic GitHub label definition.
 /// </summary>
 public sealed class LabelDefinition
 {
@@ -172,9 +220,9 @@ public sealed class LabelDefinition
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 
-    /// <summary>Gets or sets the label hex color (without #).</summary>
+    /// <summary>Gets or sets the color hex code without #.</summary>
     [JsonPropertyName("color")]
-    public string Color { get; set; } = "EDEDED";
+    public string Color { get; set; } = "FFFFFF";
 
     /// <summary>Gets or sets the label description.</summary>
     [JsonPropertyName("description")]
@@ -182,142 +230,53 @@ public sealed class LabelDefinition
 }
 
 /// <summary>
-/// LLM-specific configuration section.
+/// LLM provider and routing configuration.
 /// </summary>
 public sealed class LlmConfiguration
 {
     /// <summary>Gets or sets the primary provider identifier.</summary>
     [JsonPropertyName("primary_provider")]
-    public string PrimaryProvider { get; set; } = "ollama-local";
+    public string PrimaryProvider { get; set; } = string.Empty;
 
-    /// <summary>Gets or sets provider configurations.</summary>
+    /// <summary>Gets or sets all available provider definitions.</summary>
     [JsonPropertyName("providers")]
-    public List<LlmProviderJsonConfig> Providers { get; set; } = new();
+    public List<LlmProviderConfig> Providers { get; set; } = new();
 
-    /// <summary>Gets or sets the fallback chain of provider IDs.</summary>
+    /// <summary>Gets or sets fallback provider chain in order.</summary>
     [JsonPropertyName("fallback_chain")]
     public List<string> FallbackChain { get; set; } = new();
 
-    /// <summary>Gets or sets routing rules.</summary>
+    /// <summary>Gets or sets dynamic routing rules.</summary>
     [JsonPropertyName("routing_rules")]
     public List<LlmRoutingRule> RoutingRules { get; set; } = new();
 }
 
 /// <summary>
-/// JSON-serializable LLM provider configuration.
-/// </summary>
-public sealed class LlmProviderJsonConfig
-{
-    /// <summary>Gets or sets the provider identifier.</summary>
-    [JsonPropertyName("provider_id")]
-    public string ProviderId { get; set; } = string.Empty;
-
-    /// <summary>Gets or sets the provider type string.</summary>
-    [JsonPropertyName("type")]
-    public string Type { get; set; } = "ollama";
-
-    /// <summary>Gets or sets the server host.</summary>
-    [JsonPropertyName("host")]
-    public string Host { get; set; } = "localhost";
-
-    /// <summary>Gets or sets the server port.</summary>
-    [JsonPropertyName("port")]
-    public int Port { get; set; } = 11434;
-
-    /// <summary>Gets or sets the model identifier.</summary>
-    [JsonPropertyName("model")]
-    public string? Model { get; set; }
-
-    /// <summary>Gets or sets the base path for the API.</summary>
-    [JsonPropertyName("base_path")]
-    public string? BasePath { get; set; }
-
-    /// <summary>Gets or sets an optional absolute base URL override for the API endpoint.</summary>
-    [JsonPropertyName("base_url")]
-    public string? BaseUrl { get; set; }
-
-    /// <summary>Gets or sets the API key environment variable name.</summary>
-    [JsonPropertyName("api_key_env")]
-    public string? ApiKeyEnv { get; set; }
-
-    /// <summary>Gets or sets the context window override.</summary>
-    [JsonPropertyName("context_window_override")]
-    public int? ContextWindowOverride { get; set; }
-
-    /// <summary>Gets or sets the default temperature.</summary>
-    [JsonPropertyName("default_temperature")]
-    public float DefaultTemperature { get; set; } = 0.2f;
-
-    /// <summary>Gets or sets the default max tokens.</summary>
-    [JsonPropertyName("default_max_tokens")]
-    public int DefaultMaxTokens { get; set; } = 8192;
-
-    /// <summary>Gets or sets the timeout in seconds.</summary>
-    [JsonPropertyName("timeout_seconds")]
-    public int TimeoutSeconds { get; set; } = 300;
-
-    /// <summary>Gets or sets whether to auto-pull models.</summary>
-    [JsonPropertyName("auto_pull")]
-    public bool AutoPull { get; set; }
-
-    /// <summary>
-    /// Converts to a strongly-typed provider config.
-    /// </summary>
-    public LlmProviderConfig ToProviderConfig()
-    {
-        LlmProviderType providerType = Type.ToLowerInvariant() switch
-        {
-            "ollama" => LlmProviderType.Ollama,
-            "vllm" => LlmProviderType.Vllm,
-            "llama-cpp" or "llamacpp" => LlmProviderType.LlamaCpp,
-            _ => LlmProviderType.OpenAiCompatible
-        };
-
-        return new LlmProviderConfig
-        {
-            ProviderId = ProviderId,
-            Type = providerType,
-            Host = Host,
-            Port = Port,
-            Model = Model,
-            BasePath = BasePath,
-            BaseUrlOverride = BaseUrl,
-            ApiKeyEnv = ApiKeyEnv,
-            ContextWindowOverride = ContextWindowOverride,
-            DefaultTemperature = DefaultTemperature,
-            DefaultMaxTokens = DefaultMaxTokens,
-            TimeoutSeconds = TimeoutSeconds,
-            AutoPull = AutoPull
-        };
-    }
-}
-
-/// <summary>
-/// Execution limits configuration.
+/// Execution guardrails and limits.
 /// </summary>
 public sealed class LimitsConfiguration
 {
-    /// <summary>Gets or sets the max tokens per task.</summary>
+    /// <summary>Gets or sets maximum generated/processed tokens per task.</summary>
     [JsonPropertyName("max_tokens_per_task")]
-    public int MaxTokensPerTask { get; set; } = 100_000;
+    public int MaxTokensPerTask { get; set; } = 100000;
 
-    /// <summary>Gets or sets the max API calls per task.</summary>
+    /// <summary>Gets or sets max API calls allowed per task execution.</summary>
     [JsonPropertyName("max_api_calls_per_task")]
     public int MaxApiCallsPerTask { get; set; } = 50;
 
-    /// <summary>Gets or sets the max execution time in minutes.</summary>
+    /// <summary>Gets or sets max execution time in minutes.</summary>
     [JsonPropertyName("max_execution_time_minutes")]
     public int MaxExecutionTimeMinutes { get; set; } = 15;
 
-    /// <summary>Gets or sets the max file size in lines.</summary>
+    /// <summary>Gets or sets max file size in lines that can be edited safely.</summary>
     [JsonPropertyName("max_file_size_lines")]
     public int MaxFileSizeLines { get; set; } = 300;
 
-    /// <summary>Gets or sets the max concurrent LLM requests.</summary>
+    /// <summary>Gets or sets max concurrent LLM requests.</summary>
     [JsonPropertyName("max_concurrent_llm_requests")]
     public int MaxConcurrentLlmRequests { get; set; } = 1;
 
-    /// <summary>Gets or sets the max self-correction attempts.</summary>
+    /// <summary>Gets or sets max self-correction attempts before escalation.</summary>
     [JsonPropertyName("max_self_correction_attempts")]
     public int MaxSelfCorrectionAttempts { get; set; } = 3;
 }
