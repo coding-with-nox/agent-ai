@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - nocodex-ai-agent
     tags:
       - "v*.*.*"
   pull_request:
