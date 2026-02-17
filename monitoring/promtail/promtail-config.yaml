@@ -1,0 +1,49 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Structured JSON logs (primary — used by Grafana/Loki queries)
+  - job_name: nocodex-json
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nocodex
+          format: json
+          __path__: /var/log/nocodex/*.json.log
+    pipeline_stages:
+      - json:
+          expressions:
+            level: "@l"
+            timestamp: "@t"
+            message: "@m"
+            exception: "@x"
+            source_context: SourceContext
+      - labels:
+          level:
+          source_context:
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
+
+  # Plain-text logs (fallback for human-readable viewing)
+  - job_name: nocodex-plain
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nocodex
+          format: plain
+          __path__: /var/log/nocodex/nocodex*.log
+    pipeline_stages:
+      - regex:
+          expression: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \[(?P<level>\w+)\]'
+      - labels:
+          level:

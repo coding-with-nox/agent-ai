@@ -370,3 +370,25 @@ Vedi guida completa:
 
 - [GitHub Issue Automation](GitHub-Issue-Automation)
 
+## 16. Logging e Monitoring
+
+Il progetto include logging strutturato (JSON) e uno stack di osservabilita completo basato su Grafana + Loki + Promtail.
+
+Funzionalita principali:
+
+- Log JSON compatti (Serilog Compact) per ingestione automatica
+- Dashboard pre-configurata con filtro per livello e ricerca full-text
+- Alert automatici su errori critici (Error/Fatal)
+
+Avvio rapido:
+
+```bash
+docker compose -f docker-compose.monitoring.yml up -d
+```
+
+Grafana disponibile su `http://localhost:3000` (admin/admin).
+
+Vedi guida completa:
+
+- [Logging e Monitoring](Logging-and-Monitoring)
+
