@@ -348,3 +348,25 @@ Controlli:
 2. comando lanciato con `docker compose run --rm nocodex ...`
 3. volume bind attivo (workspace montato in `/workspace`).
 
+## 15. Workflow issue automation (GitHub)
+
+Il repository include un flusso automatico basato su label issue:
+
+- stati: `todo`, `in progress`, `wf reply`, `test`, `release`, `completed`
+- priorita: `p0`, `p1`, `p2`, `p3`
+
+Flusso sintetico:
+
+1. L'agente prende da `todo` la issue con priorita piu alta.
+2. La sposta in `in progress`.
+3. Se servono chiarimenti, commenta l'issue e passa a `wf reply`.
+4. Se il task e chiaro, implementa e passa a `test`.
+5. La pipeline test:
+   - se OK: `release` + PR verso `main`
+   - se FAIL: ritorno a `todo` con errore in commento
+6. Alla merge PR: issue in `completed`.
+
+Vedi guida completa:
+
+- [GitHub Issue Automation](GitHub-Issue-Automation)
+
